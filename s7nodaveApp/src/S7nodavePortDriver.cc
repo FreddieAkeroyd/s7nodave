@@ -13,6 +13,7 @@ typedef const char* SOARGTYPE;
 #include <sys/socket.h>
 #include <unistd.h>
 typedef int SOCKET;
+#define INVALID_SOCKET -1
 typedef const void* SOARGTYPE;
 #define closesocket close
 #endif
@@ -36,7 +37,7 @@ S7nodavePortDriver::S7nodavePortDriver(const char *portName, const char *plcHost
     this->plcSlot = plcSlot;
     this->priority = priority;
     this->registered = false;
-    this->socketFd = -1;
+    this->socketFd = INVALID_SOCKET;
 
     // Initialize libnodave structures
     this->myDaveInterface = NULL;
@@ -101,13 +102,13 @@ static SOCKET openSocket(std::string hostname, int port) {
     int status;
     if (port <= 0 || port > 65535) {
         printf("Port number %d is outside valid range (1-65535).\n", port);
-        return -1;
+        return INVALID_SOCKET;
     }
     char portString[6];
     status = snprintf(portString, 6, "%d", port);
     if (status < 0) {
         printf("Cannot convert port number %d to string: snprintf() failed.\n", port);
-        return -1;
+        return INVALID_SOCKET;
     }
     struct addrinfo hints;
     // Ensure addrinfo structure is initialized with zeros.
@@ -120,14 +121,14 @@ static SOCKET openSocket(std::string hostname, int port) {
     status = getaddrinfo(hostname.c_str(), portString, &hints, &firstAddrinfo);
     if (status != 0) {
         printf("Could not get address info for %s:%s: %s\n", hostname.c_str(), portString, gai_strerror(status));
-        return -1;
+        return INVALID_SOCKET;
     }
-    SOCKET socketFd = -1;
+    SOCKET socketFd = INVALID_SOCKET;
     struct addrinfo *nextAddrinfo = firstAddrinfo;
-    while (socketFd == -1 && nextAddrinfo != NULL) {
+    while (socketFd == INVALID_SOCKET && nextAddrinfo != NULL) {
         socketFd = socket(nextAddrinfo->ai_family, nextAddrinfo->ai_socktype, nextAddrinfo->ai_protocol);
         // Continue if socket could not be created
-        if (socketFd == -1) {
+        if (socketFd == INVALID_SOCKET) {
             continue;
         }
         status = connect(socketFd, nextAddrinfo->ai_addr, nextAddrinfo->ai_addrlen);
@@ -143,14 +144,14 @@ static SOCKET openSocket(std::string hostname, int port) {
         }
         // connect() failed, so we close the socket and try with the next address.
         closesocket(socketFd);
-        socketFd = -1;
+        socketFd = INVALID_SOCKET;
         nextAddrinfo = nextAddrinfo->ai_next;
     }
     // Free addrinfo structure
     freeaddrinfo(firstAddrinfo);
     firstAddrinfo = NULL;
     nextAddrinfo = NULL;
-    if (socketFd == -1) {
+    if (socketFd == INVALID_SOCKET) {
         printf("Connection to %s:%s could not be established.\n", hostname.c_str(), portString);
     }
     return socketFd;
@@ -162,12 +163,12 @@ asynStatus S7nodavePortDriver::asynConnect(asynUser *pasynUser)
         // Lock mutex while trying to connect. This avoids double connection
         // attempts when asynConnect is called twice within a short time.
         epicsGuard<epicsMutex> guard(this->connectMutex);
-        if (this->socketFd != -1) {
+        if (this->socketFd != INVALID_SOCKET) {
             // Already connected
             return asynSuccess;
         }
         this->socketFd = openSocket(this->plcHostname, this->plcPort);
-        if (this->socketFd == -1) {
+        if (this->socketFd == INVALID_SOCKET) {
             return asynError;
         }
 
@@ -220,7 +221,7 @@ asynStatus S7nodavePortDriver::asynDisconnect(asynUser *pasynUser)
     // asynConnect and asynDisconnect.
     {
         epicsGuard<epicsMutex> guard(this->connectMutex);
-        if (this->socketFd == -1) {
+        if (this->socketFd == INVALID_SOCKET) {
             // Connection was already cleaned up.
             // We return directly in order to avoid calling
             // exceptionDisconnect again.
@@ -251,9 +252,9 @@ asynStatus S7nodavePortDriver::asynDisconnectCleanup(asynUser *pasynUser)
         daveFree(this->myDaveInterface);
         this->myDaveInterface = NULL;
     }
-    if (this->socketFd != -1) {
+    if (this->socketFd != INVALID_SOCKET) {
         closesocket(this->socketFd);
-        this->socketFd = -1;
+        this->socketFd = INVALID_SOCKET;
     }
     return asynSuccess;
 }
