@@ -1,0 +1,167 @@
+S7nodave for EPICS
+   Device support and driver for EPICS communication with S7 PLCs 
+================================================================================
+
+ABOUT
+-----
+
+S7nodave is a device support and driver for using S7 PLCs with an EPICS IOC,
+which is based on libnodave (http://libnodave.sourceforge.net/).
+
+Using s7nodave, you can read variables from or write data to the PLC using the 
+ISO on TCP protocol. You only have to specify the memory address and data-type
+for each item you want to read or write.
+
+
+A WORD OF CAUTION
+-----------------
+
+When using this software to connect to a PLC, disconnect ALL external equipment
+from the PLC before trying to establish a connection.
+
+This software can overwrite variables in the PLC memory or even parts of the
+program running in the PLC. Therefore outputs of the PLC might show 
+unpredictable behavior.
+
+There are a lot of different PLC types and depending on the type of the PLC, its
+configuration, the type of the host machine used for the EPICS IOC, the host 
+machine's configuration and the EPICS IOC's configuration, this software might 
+have very different, potentially unwanted results.
+
+It is always the responsibility of the user using this software to ensure, that
+its use is safe and complies with local regulation BEFORE connecting any 
+equipment to the PLC. Violations of this rules might result in equipment being
+damaged or even PERSONS BEING INJURED by misbehaving equipment.
+
+
+COMPILING
+---------
+
+You need to edit the configure/RELEASE file and set the paths to match the
+locations of your EPICS base and Asyn installation directories.
+
+S7nodave for EPICS also has (compile-time) dependencies on some headers from the
+Boost C++ library (http://www.boost.org/). If these headers are not installed in
+one of the default locations (usually /usr/include and /usr/local/include), you
+have to add the Boost directory to the compiler flags. Please have a look at the 
+corresponding line in configure/RELEASE for an example. s7nodave for EPICS was
+originally compiled against version 1.47 of the Boost library, but it might also
+work with newer versions of this library. Boost itself does not need to be 
+compiled, the header files just have to be present.
+
+As libnodave is bundled with s7nodave for EPICS, there is no need to compile
+libnodave separately. It will be compiled and placed in the lib directory
+automatically when running make.
+
+
+USING THE DEVICE SUPPORT / DRIVER
+---------------------------------
+
+In order to use the device support and driver in an IOC, you have to add the
+line
+
+S7NODAVE=/path/to/s7nodave
+
+to the configure/RELEASE file of your IOC application. Assuming your IOC 
+application name is "xxx", you also have to add the two lines
+
+xxx_DBD += s7nodave.dbd
+xxx_LIBS += s7nodave
+
+to the file xxxApp/src/Makefile.
+
+You can the use DTYP "s7nodave" for most record types. The device addresses
+have the form "@myPLC IB0" where "myPLC" is the name of a port created using
+
+s7nodaveConfigureIsoTcpPort("myPLC", "s7plc.local.marsching.com", 0, 0, 0)
+
+in iocBoot/iocxxx/st.cmd and "IB0" is a memory address in the usual S7 notation.
+
+Please see the extended documentation in the docs directory for more detailed
+information about how to use s7nodave for EPICS.
+
+
+CONTACTING THE AUTHOR
+---------------------
+
+Please refer to the contact information given on our web page 
+(http://www.aquenos.com). Bug reports, comments on this software and reports of
+applications of this software are always welcome.
+
+================================================================================
+
+Copyright notice for s7nodave for EPICS:
+ 
+Copyright 2011-2013 aquenos GmbH
+
+S7nodave for EPICS is free software: you can redistribute it and/or modify it 
+under the terms of the GNU General Public License as published by the Free 
+Software Foundation, either version 3 of the License, or (at your option) any 
+later version.
+
+S7nodave for EPICS is distributed in the hope that it will be useful, but 
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or 
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more 
+details.
+
+You should have received a copy of the GNU General Public License along with 
+s7nodave for EPICS.  If not, see <http://www.gnu.org/licenses/>.
+ 
+================================================================================
+
+This software uses EPICS base. Copyright notice for EPICS base:
+
+Copyright (c) 1991-2007 UChicago Argonne LLC and The Regents of the University 
+of California. All rights reserved.
+
+For the license of EPICS base please refer to the LICENSE file in the EPICS base
+directory.
+
+================================================================================
+
+This software uses Asyn for EPICS. Copyright notice for Asyn:
+
+Copyright (c) 2002 University of Chicago, The Regents of the
+University of California, and Berliner Elektronenspeicherring
+Gesellschaft fuer Synchrotronstrahlung m.b.H. (BESSY) All rights
+reserved.
+
+Copyright (c) 2004 by Danfysik and Cosylab (Danfysik has funded the work
+performed by Cosylab).
+
+For the license of Asyn please refer to the LICENSE file in the Asyn directory.
+
+================================================================================
+
+This software uses and distributes (a modified version of) libnodave. Copyright
+notice for libnodave:
+
+Copyright Thomas Hergenhahn (thomas.hergenhahn@web.de) 2002..2005
+ 
+S5 basic communication parts Copyright Andrew Rostovtsew 2004.
+
+Libnodave is free software; you can redistribute it and/or modify
+it under the terms of the GNU Library General Public License as published by
+the Free Software Foundation; either version 2, or (at your option)
+any later version.
+
+Please refer to the LICENSE and README files in s7nodaveApp/libnodave for
+more information about libnodave's softare license.
+
+================================================================================
+
+This software uses various parts from the Boost library.
+
+Copyright notice for Boost optional:
+Copyright (C) 2003, 2008 Fernando Luis Cacciola Carballal.
+
+Copyright notice for Boost shared_ptr:
+(C) Copyright Greg Colvin and Beman Dawes 1998, 1999.
+Copyright (c) 2001-2008 Peter Dimov
+
+Copyright notice for string_algo:
+Copyright Pavol Droba 2002-2004.
+
+All components of the Boost library are licensed under the terms of the Boost
+Software License, Version 1.0. See http://www.boost.org/LICENSE_1_0.txt for the
+license text.

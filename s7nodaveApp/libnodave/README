@@ -1,0 +1,19 @@
+This directory contains the files from libnodave.
+
+This distribution of libnodave is based on libnodave 0.8.4.6 and has been 
+modified for use with the EPICS s7nodave driver. It only consists of those
+files needed by the s7nodave driver. For the original distribution please go to
+http://libnodave.sourceforge.net/.
+
+Licensing information:
+
+Copyright Thomas Hergenhahn (thomas.hergenhahn@web.de) 2002..2005
+ 
+S5 basic communication parts Copyright Andrew Rostovtsew 2004.
+
+Modified for use with EPICS s7nodave driver Copyright Sebastian Marsching 2011 
+
+Libnodave is free software; you can redistribute it and/or modify
+it under the terms of the GNU Library General Public License as published by
+the Free Software Foundation; either version 2, or (at your option)
+any later version.
