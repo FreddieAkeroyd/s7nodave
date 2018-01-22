@@ -38,6 +38,7 @@ s7nodave_SRCS += s7nodaveRegistrar.c
 s7nodave_LIBS += asyn
 s7nodave_LIBS += nodave
 s7nodave_LIBS += $(EPICS_BASE_IOC_LIBS)
+s7nodave_SYS_LIBS_WIN32 += ws2_32
 
 #===========================
 

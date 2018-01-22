@@ -38,7 +38,12 @@ extern "C" {
  * other systems that work should be close enough to Linux as far as
  * libnodave is concerned.
  */
+#ifdef _WIN32
+#define DAVE_BCCWIN
+#define BCCWIN /* for openS7online */
+#else
 #define DAVE_LINUX
+#endif
 
 #define daveSerialConnection 0
 #define daveTcpConnection 1
@@ -59,6 +64,7 @@ typedef struct dost {
 
 #ifdef DAVE_BCCWIN
 #define DAVE_WIN32_LEAN_AND_MEAN
+#include <winsock2.h>
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>

@@ -1,11 +1,21 @@
 #include <string>
 
 #include <fcntl.h>
-#include <netdb.h>
 #include <string.h>
-#include <sys/socket.h>
 #include <sys/types.h>
+#ifdef _WIN32
+#define NOMINMAX
+#include <winsock2.h>
+#include <ws2tcpip.h>
+typedef const char* SOARGTYPE;
+#else
+#include <netdb.h>
+#include <sys/socket.h>
 #include <unistd.h>
+typedef int SOCKET;
+typedef const void* SOARGTYPE;
+#define closesocket close
+#endif
 
 #include <asynDriver.h>
 #include <epicsGuard.h>
@@ -87,7 +97,7 @@ void S7nodavePortDriver::asynReport(FILE *fp, int details) {
 /*
  * Opens a TCP socket and connects it to the PLC.
  */
-static int openSocket(std::string hostname, int port) {
+static SOCKET openSocket(std::string hostname, int port) {
     int status;
     if (port <= 0 || port > 65535) {
         printf("Port number %d is outside valid range (1-65535).\n", port);
@@ -112,7 +122,7 @@ static int openSocket(std::string hostname, int port) {
         printf("Could not get address info for %s:%s: %s\n", hostname.c_str(), portString, gai_strerror(status));
         return -1;
     }
-    int socketFd = -1;
+    SOCKET socketFd = -1;
     struct addrinfo *nextAddrinfo = firstAddrinfo;
     while (socketFd == -1 && nextAddrinfo != NULL) {
         socketFd = socket(nextAddrinfo->ai_family, nextAddrinfo->ai_socktype, nextAddrinfo->ai_protocol);
@@ -128,11 +138,11 @@ static int openSocket(std::string hostname, int port) {
             //fcntl(socketFd, F_SETFL, O_NONBLOCK);
             // Enable keep-alive packets.
             int socketOptFlag = 1;
-            setsockopt(socketFd, SOL_SOCKET, SO_KEEPALIVE, &socketOptFlag, sizeof(int));
+            setsockopt(socketFd, SOL_SOCKET, SO_KEEPALIVE, reinterpret_cast<SOARGTYPE>(&socketOptFlag), sizeof(int));
             break;
         }
         // connect() failed, so we close the socket and try with the next address.
-        close(socketFd);
+        closesocket(socketFd);
         socketFd = -1;
         nextAddrinfo = nextAddrinfo->ai_next;
     }
@@ -162,8 +172,13 @@ asynStatus S7nodavePortDriver::asynConnect(asynUser *pasynUser)
         }
 
         daveFileDescriptors myDaveFileDescriptors;
+#ifdef _WIN32
+        myDaveFileDescriptors.rfd = reinterpret_cast<HANDLE>(this->socketFd);
+        myDaveFileDescriptors.wfd = reinterpret_cast<HANDLE>(this->socketFd);
+#else
         myDaveFileDescriptors.rfd = this->socketFd;
         myDaveFileDescriptors.wfd = this->socketFd;
+#endif
         this->myDaveInterface = daveNewInterface(myDaveFileDescriptors, this->portName.c_str(), 0, daveProtoISOTCP, daveSpeed1500k);
         if (this->myDaveInterface == NULL) {
             printf("Could not create dave interface for port %s.\n", this->portName.c_str());
@@ -237,7 +252,7 @@ asynStatus S7nodavePortDriver::asynDisconnectCleanup(asynUser *pasynUser)
         this->myDaveInterface = NULL;
     }
     if (this->socketFd != -1) {
-        close(this->socketFd);
+        closesocket(this->socketFd);
         this->socketFd = -1;
     }
     return asynSuccess;

@@ -36,7 +36,9 @@ void s7nodaveConfigureIsoTcpPort(const char *portName, const char* plcHostnameAn
     if (colonAndPort != NULL) {
         const char *port = ++colonAndPort;
         plcPort = atoi(port);
-        plcHostname = strndup(plcHostnameAndPort, colonAndPort - plcHostnameAndPort);
+ //       plcHostname = strndup(plcHostnameAndPort, colonAndPort - plcHostnameAndPort); // strndup not yet on WIN32
+        plcHostname = strdup(plcHostnameAndPort);
+        plcHostname[colonAndPort - plcHostnameAndPort] = '\0';
     } else {
         plcHostname = strdup(plcHostnameAndPort);
     }

@@ -72,7 +72,7 @@ private:
     /**
      * File descriptor of the socket connected to the PLC.
      */
-    int socketFd;
+    SOCKET socketFd;
 
     /**
      * Mutex for synchronizing connect/disconnect requests.
