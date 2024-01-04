@@ -12,6 +12,7 @@ s7nodaveTest_DBD += s7nodave.dbd
 
 s7nodaveTest_LIBS += s7nodave
 s7nodaveTest_LIBS += asyn
+s7nodaveTest_LIBS += snap7
 s7nodaveTest_LIBS += $(EPICS_BASE_IOC_LIBS)
 
 s7nodaveTest_SYS_LIBS_WIN32 += ws2_32
