@@ -210,7 +210,7 @@ typedef enum {
 
 void ErrIsoText(int Error, char *Msg, int len);
 
-class TIsoTcpSocket : public TMsgSocket
+class SNAP7_EXPORT TIsoTcpSocket : public TMsgSocket
 {
 private:
 

@@ -16,4 +16,15 @@ INC += snap_msgsock.h
 INC += snap_platform.h
 INC += snap_sysutils.h
 
+ifdef WIN32
+ifeq ($(STATIC_BUILD),NO)
+USR_CPPFLAGS += -DSNAP7_EXPORT=__declspec(dllexport)
+else
+USR_CPPFLAGS += -DSNAP7_EXPORT=
+endif
+else
+USR_CPPFLAGS += -DSNAP7_EXPORT=
+endif
+
+snap7_SYS_LIBS_WIN32 += ws2_32 Winmm
 include $(TOP)/configure/RULES

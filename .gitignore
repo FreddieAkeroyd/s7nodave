@@ -4,3 +4,7 @@
 /include/
 /lib/
 O.*
+*.local
+dllPath.bat
+envPaths
+relPaths.sh

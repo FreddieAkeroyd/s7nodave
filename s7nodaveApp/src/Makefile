@@ -10,6 +10,16 @@ include $(TOP)/configure/CONFIG
 
 LIBRARY_IOC += s7nodave
 
+ifdef WIN32
+ifeq ($(STATIC_BUILD),NO)
+USR_CPPFLAGS += -DSNAP7_EXPORT=__declspec(dllimport)
+else
+USR_CPPFLAGS += -DSNAP7_EXPORT=
+endif
+else
+USR_CPPFLAGS += -DSNAP7_EXPORT=
+endif
+
 # install s7nodave.dbd into <top>/dbd
 DBD += s7nodave.dbd
 

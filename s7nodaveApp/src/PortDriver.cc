@@ -1,11 +1,18 @@
 #include <string>
-
 #include <fcntl.h>
-#include <netdb.h>
 #include <string.h>
-#include <sys/socket.h>
 #include <sys/types.h>
+
+#ifdef _WIN32
+#define NOMINMAX
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <windows.h>
+#else
+#include <netdb.h>
+#include <sys/socket.h>
 #include <unistd.h>
+#endif    
 
 #include <asynDriver.h>
 #include <epicsGuard.h>
