@@ -10,8 +10,9 @@
 
 #include "S7nodaveOutputRecord.h"
 
-long S7nodaveOutputRecord::initRecord()
-{
+namespace s7nodave {
+
+long S7nodaveOutputRecord::initRecord() {
     // Most of the initialization is done in the superclass's method.
     long initStatus = S7nodaveRecord::initRecord();
     if (initStatus != RECORD_STATUS_OK) {
@@ -40,7 +41,7 @@ long S7nodaveOutputRecord::initRecord()
     bool success = true;
     int bufferSize = this->getIoBufferSizeInBytes();
     void *buffer = pasynManager->memMalloc(bufferSize);
-    if (buffer == NULL) {
+    if (!buffer) {
         asynPrint(this->myAsynUser, ASYN_TRACE_ERROR, "%s S7nodaveOutputRecord::initRecord Allocation of %d bytes of memory failed.\n", record->name, bufferSize);
         success = false;
     }
@@ -51,12 +52,13 @@ long S7nodaveOutputRecord::initRecord()
     if (success) {
         recordStatus = this->writeToRecord(buffer, bufferSize);
         this->record->udf = 0;
+        recGblResetAlarms(this->record);
     } else {
         recordStatus = RECORD_STATUS_OK;
     }
-    if (buffer != NULL) {
+    if (buffer) {
         pasynManager->memFree(buffer, bufferSize);
-        buffer = NULL;
+        buffer = nullptr;
     }
     // We do not check the status of unlockPort, because we could not do anything
     // about an error anyway.
@@ -64,8 +66,7 @@ long S7nodaveOutputRecord::initRecord()
     return recordStatus;
 }
 
-void S7nodaveOutputRecord::asynProcessCallback()
-{
+void S7nodaveOutputRecord::asynProcessCallback() {
     size_t bufferSize;
     void *buffer;
     // Lock mutex to avoid race condition with processRecord
@@ -74,10 +75,10 @@ void S7nodaveOutputRecord::asynProcessCallback()
         bufferSize = this->newDataLength;
         buffer = this->newData;
         this->newDataLength = 0;
-        this->newData = NULL;
+        this->newData = nullptr;
     }
     bool success = true;
-    if (buffer == NULL) {
+    if (!buffer) {
         asynPrint(this->myAsynUser, ASYN_TRACE_ERROR, "%s S7nodaveOutputRecord::asynProcessCallback Got NULL pointer instead of buffer.\n", record->name);
         success = false;
     }
@@ -85,9 +86,9 @@ void S7nodaveOutputRecord::asynProcessCallback()
         success = this->writeToPlc(buffer, bufferSize);
     }
     // Free buffer
-    if (buffer != NULL) {
+    if (buffer) {
         pasynManager->memFree(buffer, bufferSize);
-        buffer = NULL;
+        buffer = nullptr;
     }
     this->processCallbackError = !success;
     if (!success) {
@@ -103,14 +104,13 @@ void S7nodaveOutputRecord::asynProcessCallback()
     }
 }
 
-long S7nodaveOutputRecord::processRecord()
-{
+long S7nodaveOutputRecord::processRecord() {
     if (this->record->pact == 0) {
         // Record is not process at the moment, so a write process should be
         // started.
         int bufferSize = this->getIoBufferSizeInBytes();
         void *buffer = pasynManager->memMalloc(bufferSize);
-        if (buffer == NULL) {
+        if (!buffer) {
             asynPrint(this->myAsynUser, ASYN_TRACE_ERROR, "%s S7nodaveOutputRecord::processRecord Allocation of %d bytes of memory failed.\n", record->name, bufferSize);
             recGblSetSevr(this->record, WRITE_ALARM, INVALID_ALARM);
             return RECORD_STATUS_OK;
@@ -122,7 +122,7 @@ long S7nodaveOutputRecord::processRecord()
         {
             epicsGuard<epicsMutex> guard(this->newDataMutex);
             // Make sure that old buffer is freed if not null.
-            if (this->newData != NULL) {
+            if (this->newData) {
                 pasynManager->memFree(this->newData, this->newDataLength);
             }
             this->newData = buffer;
@@ -150,7 +150,8 @@ long S7nodaveOutputRecord::processRecord()
     return RECORD_STATUS_OK;
 }
 
-long S7nodaveOutputRecord::interceptInitRecordBeforeValueInit()
-{
+long S7nodaveOutputRecord::interceptInitRecordBeforeValueInit() {
     return RECORD_STATUS_OK;
 }
+
+} // namespace s7nodave

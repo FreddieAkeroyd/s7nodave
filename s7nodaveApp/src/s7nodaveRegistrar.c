@@ -2,7 +2,7 @@
 #include <initHooks.h>
 #include <iocsh.h>
 
-#include "S7nodavePollGroup.h"
+#include "PollGroup.h"
 #include "s7nodaveAsyn.h"
 
 /*
@@ -52,8 +52,7 @@ static const iocshFuncDef iocshS7nodaveConfigureIsoTcpPortFuncDef = {
     iocshS7nodaveConfigureIsoTcpPortArgs
 };
 
-static void iocshS7nodaveConfigureIsoTcpPortFunc(const iocshArgBuf *args)
-{
+static void iocshS7nodaveConfigureIsoTcpPortFunc(const iocshArgBuf *args) {
     char *portName = args[0].sval;
     char *plcHostname = args[1].sval;
     int plcRack = args[2].ival;
@@ -98,8 +97,7 @@ static const iocshFuncDef iocshS7nodaveConfigurePollGroupFuncDef = {
     iocshS7nodaveConfigurePollGroupArgs
 };
 
-static void iocshS7nodaveConfigurePollGroupFunc(const iocshArgBuf *args)
-{
+static void iocshS7nodaveConfigurePollGroupFunc(const iocshArgBuf *args) {
     char *portName = args[0].sval;
     char *pollGroupName = args[1].sval;
     double pollingInterval = args[2].dval;
@@ -111,8 +109,7 @@ static void iocshS7nodaveConfigurePollGroupFunc(const iocshArgBuf *args)
  * Function that is executed each time the initialization state of the IOC
  * changes.
  */
-static void initHookFunc(initHookState state)
-{
+static void initHookFunc(initHookState state) {
     if (state == initHookAfterIocRunning) {
         // Start the poll groups.
         s7nodaveStartPollGroups();
@@ -122,8 +119,7 @@ static void initHookFunc(initHookState state)
 /*
  * Registrar that registers the iocsh commands and the init hook function.
  */
-static void s7nodaveRegistrar()
-{
+static void s7nodaveRegistrar() {
     iocshRegister(&iocshS7nodaveConfigureIsoTcpPortFuncDef, iocshS7nodaveConfigureIsoTcpPortFunc);
     iocshRegister(&iocshS7nodaveConfigurePollGroupFuncDef, iocshS7nodaveConfigurePollGroupFunc);
     initHookRegister(initHookFunc);

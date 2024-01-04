@@ -1,14 +1,15 @@
 #ifndef S7nodaveInputRecord_h
 #define S7nodaveInputRecord_h
 
-#include "S7nodavePollGroup.h"
+#include "PollGroup.h"
 #include "S7nodaveRecord.h"
+
+namespace s7nodave {
 
 /**
  * Base class of all device support classes for input records.
  */
-class S7nodaveInputRecord : public S7nodaveRecord
-{
+class S7nodaveInputRecord : public S7nodaveRecord {
 protected:
     /**
      * Constructor. The record is stored in an attribute of this class and
@@ -22,22 +23,22 @@ protected:
         this->pollRequester.record = this;
     };
 
-    virtual void asynProcessCallback();
+    virtual void asynProcessCallback() override;
 
-    virtual long initRecord();
+    virtual long initRecord() override;
 
-    virtual long processRecord();
+    virtual long processRecord() override;
 
-    virtual long getIoIntInfoRecord(int command, IOSCANPVT *iopvt);
+    virtual long getIoIntInfoRecord(int command, IOSCANPVT *iopvt) override;
 
-    virtual void extractDeviceParameters(S7nodaveRecordAddress::DeviceParameters& deviceParameters);
+    virtual void extractDeviceParameters(S7nodaveRecordAddress::DeviceParameters& deviceParameters) override;
 
     /**
      * Registers a read request when the record is part of a poll group. Calls
      * the requestRead method of the passed pollService in order to read the
      * memory area corresponding to this record's value.
      */
-    virtual void preparePollRequest(S7nodavePollService& pollService);
+    virtual void preparePollRequest(PollService& pollService);
 
     /**
      * Called by poll group support when a request previously queued by the
@@ -67,17 +68,14 @@ protected:
      * This implementation just delegates calls to the preparePollRequest and
      * processPollReponse methods of the enclosing class.
      */
-    class PollRequester : public S7nodavePollRequester
-    {
+    class PollRequesterImpl : public PollRequester {
     public:
         S7nodaveInputRecord *record;
-        virtual void prepareRequest(S7nodavePollService& pollService)
-        {
+        virtual void prepareRequest(PollService& pollService) override {
             this->record->preparePollRequest(pollService);
         };
 
-        virtual void processResponse(bool requestSucceeded, int bufferSize, void *buffer)
-        {
+        virtual void processResponse(bool requestSucceeded, int bufferSize, void *buffer) override {
             this->record->processPollResponse(requestSucceeded, bufferSize, buffer);
         };
     };
@@ -85,7 +83,9 @@ protected:
     /**
      * Instance of the PollRequester class.
      */
-    PollRequester pollRequester;
+    PollRequesterImpl pollRequester;
 };
 
-#endif
+} // namespace s7nodave
+
+#endif  // S7nodaveInputRecord_h

@@ -27,12 +27,6 @@ TEMPLATE_TOP=$(EPICS_BASE)/templates/makeBaseApp/top
 # The ASYN variable has to point to the asyn director.
 #ASYN=/opt/epics/modules/synApps_5_5/support/asyn-4-13
 
-# If the headers of the Boost library (http://www.boost.org/) are not installed
-# in one of the default header locations (usually /usr/include and 
-# /usr/local/include) the includes path has to be added to RELEASE_INCLUDES.
-# Only Boost headers are used, there is no need to compile the Boost library.
-#RELEASE_INCLUDES+=-I/my/path/to/boost_1_47_0
-
 # EPICS_BASE usually appears last so other apps can override stuff:
 #EPICS_BASE=/opt/epics/base-3.14.12
 

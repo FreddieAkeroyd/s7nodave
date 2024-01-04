@@ -3,22 +3,22 @@
 
 #include <string>
 
-#include <boost/optional/optional.hpp>
-
 #include <asynDriver.h>
 #include <callback.h>
 #include <dbCommon.h>
 #include <epicsMutex.h>
 
-#include "S7nodavePlcAddress.h"
+#include "Optional.h"
+#include "PlcAddress.h"
 #include "S7nodaveRecordAddress.h"
 #include "s7nodaveAsyn.h"
+
+namespace s7nodave {
 
 /**
  * Base class for all device support classes for all record types.
  */
-class S7nodaveRecord
-{
+class S7nodaveRecord {
 public:
     /**
      * Constructor. The record is stored in an attribute of this class and
@@ -101,7 +101,7 @@ protected:
      * size, ignoring the data-type that has been requested in the device
      * address string.
      */
-    virtual boost::optional<s7nodavePlcDataType> getPlcDataType(S7nodavePlcAddress plcAddress, boost::optional<s7nodavePlcDataType> suggestion);
+    virtual Optional<s7nodavePlcDataType> getPlcDataType(PlcAddress plcAddress, Optional<s7nodavePlcDataType> suggestion);
 
     /**
      * Extracts device parameters from the device parameter map. The parameters,
@@ -187,7 +187,7 @@ protected:
      * The record address is not available on construction but does not have a
      * default constructor. Therefore we wrap it in an optional.
      */
-    boost::optional<S7nodaveRecordAddress> recordAddress;
+    Optional<S7nodaveRecordAddress> recordAddress;
 
     /**
      * Mutex that must be locked before accessing the newData, newDataLength or
@@ -242,4 +242,6 @@ protected:
     asynS7nodave *myAsynS7nodave;
 };
 
-#endif
+} // namespace s7nodave
+
+#endif // S7nodaveRecord_h

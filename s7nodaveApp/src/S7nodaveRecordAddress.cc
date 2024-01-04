@@ -1,71 +1,70 @@
-#include <map>
 #include <vector>
 
-#include <boost/algorithm/string.hpp>
+#include "utilities.h"
 
 #include "S7nodaveRecordAddress.h"
 
-using boost::tuple;
-using boost::optional;
-using std::map;
-using std::string;
-using std::vector;
+namespace s7nodave {
 
-std::string S7nodaveRecordAddress::getPortName() const
-{
+std::string S7nodaveRecordAddress::getPortName() const {
     return this->portName;
 }
 
-S7nodavePlcAddress S7nodaveRecordAddress::getPlcAddress() const
-{
+PlcAddress S7nodaveRecordAddress::getPlcAddress() const {
     return this->plcAddress;
 }
-s7nodavePlcDataType S7nodaveRecordAddress::getPlcDataType() const
-{
+s7nodavePlcDataType S7nodaveRecordAddress::getPlcDataType() const {
     return this->plcDataType;
 }
 
-S7nodaveRecordAddress::DeviceParameters S7nodaveRecordAddress::getDeviceParameters() const
-{
+S7nodaveRecordAddress::DeviceParameters S7nodaveRecordAddress::getDeviceParameters() const {
     return this->recordParameters;
 }
 
-static const std::string whitespace = " \t\n\r\x0b";
+namespace {
 
-static optional<S7nodaveRecordAddress::DeviceParameters> parseDeviceParameters(string parameterString) {
+const std::string whitespace = " \t\n\r\x0b";
+
+Optional<S7nodaveRecordAddress::DeviceParameters> parseDeviceParameters(std::string parameterString) {
+    if (parameterString.empty()) {
+        return S7nodaveRecordAddress::DeviceParameters();
+    }
     S7nodaveRecordAddress::DeviceParameters parameterMap;
-    vector<string> parameters;
     // Device parameters are separated by commas
-    boost::split(parameters, parameterString, boost::is_any_of(","));
-    for (vector<string>::iterator i = parameters.begin(); i < parameters.end(); i++) {
-        string parameterName;
-        optional<string> parameterValue;
-        size_t equalPos = i->find_first_of('=');
-        if (equalPos == string::npos) {
+    auto parameters = splitString(parameterString, ',');
+    for (auto& parameterString : parameters) {
+        std::string parameterName;
+        Optional<std::string> parameterValue;
+        size_t equalPos = parameterString.find_first_of('=');
+        if (equalPos == std::string::npos) {
             // Parameter without value
-            parameterName = *i;
-            boost::trim(parameterName);
+            parameterName = parameterString;
+            trim(parameterName);
         } else {
-            parameterName = i->substr(0, equalPos);
-            boost::trim(parameterName);
-            parameterValue = i->substr(equalPos + 1);
-            boost::trim(*parameterValue);
+            parameterName = parameterString.substr(0, equalPos);
+            trim(parameterName);
+            parameterValue = parameterString.substr(equalPos + 1);
+            trim(*parameterValue);
+        }
+        // Parameter names must not be the empty string.
+        if (parameterName.empty()) {
+            return Optional<S7nodaveRecordAddress::DeviceParameters>();
         }
         // Parameter names are case insensitive, so we normalize them to
         // capital characters.
-        boost::to_upper(parameterName);
+        toUpper(parameterName);
         if (parameterMap.find(parameterName) != parameterMap.end()) {
             // The same parameter appeared twice
-            return optional<S7nodaveRecordAddress::DeviceParameters>();
+            return Optional<S7nodaveRecordAddress::DeviceParameters>();
         }
         // Add parameter to map
-        parameterMap.insert(S7nodaveRecordAddress::DeviceParameters::value_type(parameterName, parameterValue));
+        parameterMap.insert(std::make_pair(parameterName, parameterValue));
     }
     return parameterMap;
 }
 
-static optional<s7nodavePlcDataType> stringToPlcDataType(string typeString) {
-    boost::to_lower(typeString);
+Optional<s7nodavePlcDataType> stringToPlcDataType(std::string typeString) {
+    toLower(typeString);
     if (typeString == "bool") {
         return plcDataTypeBool;
     } else if (typeString == "int8") {
@@ -83,89 +82,89 @@ static optional<s7nodavePlcDataType> stringToPlcDataType(string typeString) {
     } else if (typeString == "float") {
         return plcDataTypeFloat;
     } else {
-        return optional<s7nodavePlcDataType>();
+        return Optional<s7nodavePlcDataType>();
     }
 }
 
-tuple< string, optional<S7nodaveRecordAddress::DeviceParameters>, optional<S7nodavePlcAddress>, optional<s7nodavePlcDataType>, bool > S7nodaveRecordAddress::parseRecordAddress(std::string addressString)
-{
-    optional<S7nodavePlcAddress> emptyPlcAddress;
-    optional<s7nodavePlcDataType> emptyPlcDataType;
-    optional<DeviceParameters> emptyParameterMap;
+} // anonymous namesapce
 
-    boost::trim(addressString);
+std::tuple< std::string, Optional<S7nodaveRecordAddress::DeviceParameters>, Optional<PlcAddress>, Optional<s7nodavePlcDataType>, bool > S7nodaveRecordAddress::parseRecordAddress(std::string addressString) {
+    Optional<PlcAddress> emptyPlcAddress;
+    Optional<s7nodavePlcDataType> emptyPlcDataType;
+    Optional<DeviceParameters> emptyParameterMap;
+
+    trim(addressString);
     size_t pos;
     // Port name ends with opening parenthesis or whitespace
     pos = addressString.find_first_of(whitespace + "(");
     if (pos == std::string::npos) {
-        return boost::make_tuple(addressString, emptyParameterMap, emptyPlcAddress, emptyPlcDataType, false);
+        return std::make_tuple(addressString, emptyParameterMap, emptyPlcAddress, emptyPlcDataType, false);
     }
     std::string portName = addressString.substr(0, pos);
     if (portName.size() == 0) {
-        return boost::make_tuple(portName, emptyParameterMap, emptyPlcAddress, emptyPlcDataType, false);
+        return std::make_tuple(portName, emptyParameterMap, emptyPlcAddress, emptyPlcDataType, false);
     }
     addressString = addressString.substr(pos);
-    boost::trim_left(addressString);
-    optional<DeviceParameters> deviceParameterMap;
+    trimLeft(addressString);
+    Optional<DeviceParameters> deviceParameterMap;
     // Handle list of optional parameters
     if (addressString.size() >= 1 && addressString[0] == '(') {
         // Find closing parenthesis.
         pos = addressString.find_first_of(')');
-        if (pos == string::npos) {
+        if (pos == std::string::npos) {
             // Unmatched parenthesis.
-            return boost::make_tuple(portName, emptyParameterMap, emptyPlcAddress, emptyPlcDataType, false);
+            return std::make_tuple(portName, emptyParameterMap, emptyPlcAddress, emptyPlcDataType, false);
         }
         deviceParameterMap = parseDeviceParameters(addressString.substr(1, pos - 1));
         if (!deviceParameterMap) {
             // Invalid parameter string
-            return boost::make_tuple(portName, emptyParameterMap, emptyPlcAddress, emptyPlcDataType, false);
+            return std::make_tuple(portName, emptyParameterMap, emptyPlcAddress, emptyPlcDataType, false);
         }
         addressString = addressString.substr(pos + 1);
-        boost::trim_left(addressString);
+        trimLeft(addressString);
     } else {
         // No device parameters
         deviceParameterMap = DeviceParameters();
     }
     // PLC address ends with whitespace (or end of string)
     pos = addressString.find_first_of(whitespace);
-    string plcAddressString;
-    if (pos == string::npos) {
+    std::string plcAddressString;
+    if (pos == std::string::npos) {
         plcAddressString = addressString;
         addressString = "";
     } else {
         plcAddressString = addressString.substr(0, pos);
         addressString = addressString.substr(pos);
-        boost::trim_left(addressString);
+        trimLeft(addressString);
     }
-    optional<S7nodavePlcAddress> plcAddress = S7nodavePlcAddress::create(plcAddressString);
+    Optional<PlcAddress> plcAddress = PlcAddress::create(plcAddressString);
     if (!plcAddress) {
         // Invalid PLC address
-        return boost::make_tuple(portName, deviceParameterMap, emptyPlcAddress, emptyPlcDataType, false);
+        return std::make_tuple(portName, deviceParameterMap, emptyPlcAddress, emptyPlcDataType, false);
     }
     // The rest of the string is the PLC data type
-    optional<s7nodavePlcDataType> plcDataType;
+    Optional<s7nodavePlcDataType> plcDataType;
     if (addressString.size() > 0) {
         plcDataType = stringToPlcDataType(addressString);
         if (plcDataType) {
-            return boost::make_tuple(portName, deviceParameterMap, plcAddress, plcDataType, true);
+            return std::make_tuple(portName, deviceParameterMap, plcAddress, plcDataType, true);
         } else {
-            return boost::make_tuple(portName, deviceParameterMap, plcAddress, emptyPlcDataType, false);
+            return std::make_tuple(portName, deviceParameterMap, plcAddress, emptyPlcDataType, false);
         }
     } else {
-        return boost::make_tuple(portName, deviceParameterMap, plcAddress, emptyPlcDataType, true);
+        return std::make_tuple(portName, deviceParameterMap, plcAddress, emptyPlcDataType, true);
     }
 }
 
-optional<S7nodaveRecordAddress> S7nodaveRecordAddress::create(string portName, S7nodavePlcAddress plcAddress, s7nodavePlcDataType plcDataType, DeviceParameters recordParameters)
-{
-    optional<S7nodaveRecordAddress> emptyResult;
+Optional<S7nodaveRecordAddress> S7nodaveRecordAddress::create(std::string portName, PlcAddress plcAddress, s7nodavePlcDataType plcDataType, DeviceParameters recordParameters) {
+    Optional<S7nodaveRecordAddress> emptyResult;
     // Port name must not be empty
     if (portName.size() == 0) {
         return emptyResult;
     }
     // If a PLC data type is specified, its size has to match the data size of
     // the PLC address.
-    int dataSize = S7nodavePlcAddress::dataSizeInBits(plcAddress.getDataSize());
+    int dataSize = PlcAddress::dataSizeInBits(plcAddress.getDataSize());
     switch (plcDataType) {
     case plcDataTypeBool:
         if (dataSize != 1) {
@@ -195,7 +194,8 @@ optional<S7nodaveRecordAddress> S7nodaveRecordAddress::create(string portName, S
     return S7nodaveRecordAddress(portName, plcAddress, plcDataType, recordParameters);
 }
 
-S7nodaveRecordAddress::S7nodaveRecordAddress(std::string portName, S7nodavePlcAddress plcAddress, s7nodavePlcDataType plcDataType, DeviceParameters recordParameters) :
-portName(portName), plcAddress(plcAddress), plcDataType(plcDataType), recordParameters(recordParameters)
-{
+S7nodaveRecordAddress::S7nodaveRecordAddress(std::string portName, PlcAddress plcAddress, s7nodavePlcDataType plcDataType, DeviceParameters recordParameters) :
+portName(portName), plcAddress(plcAddress), plcDataType(plcDataType), recordParameters(recordParameters) {
 }
+
+} // namespace s7nodave
