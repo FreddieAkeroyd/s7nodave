@@ -9,6 +9,7 @@
       <year>2011</year>
       <year>2012</year>
       <year>2015</year>
+      <year>2021</year>
       <holder>aquenos GmbH</holder>
     </copyright>
     <author>
@@ -77,28 +78,31 @@
       the features offered by it.
     </para>
     <section>
-      <title>libnodave</title>
+      <title>Snap7</title>
       <para>
-        The s7nodave device support is based on a slightly modified version of
-        <link xlink:href="http://libnodave.sourceforge.net/">libnodave</link>,
-        originally created by Thomas Hergenhahn. This library implements the
-        communication protocol supported by many PLCs from the S7 family and
-        thus allows software on a PC to communicate with a PLC without having
-        to explicitly implement communication routines on the PLC side.
+        The s7nodave device support is based on 
+        <link xlink:href="http://snap7.sourceforge.net/">Snap7</link>. This
+        library implements the communication protocol supported by many PLCs
+        from the S7 family and thus allows software on a PC to communicate with
+        a PLC without having to explicitly implement communication routines on
+        the PLC side.
+      </para>
+      <para>
+        In the past, the s7nodave device support had been based on
+        <link xlink:href="http://libnodave.sourceforge.net/">libnodave</link>.
+        This changed with the release of s7nodave version 3.0 because of a bug
+        in libnodave that could not be easily fixed.
       </para>
     </section>
     <section>
       <title>Supported Devices</title>
       <para>
         Basically, s7nodave supports all PLCs supported by
-        <link xlink:href="http://libnodave.sourceforge.net/">libnodave</link>.
-        However, as an additional constraint, the current version of libnodave
-        only supports connections over Ethernet/PROFINET (ISO-TCP)and not over
-        other kind of connections (e.g. special serial or USB adapters).
+        <link xlink:href="http://snap7.sourceforge.net/">Snap7</link>.
       </para>
       <para>
-        S7nodave has been developed using a S7-1200 PLC. However, there are
-        reports that libnodave also works with S7-300, S7-400, and S7-1500 PLCs.
+        S7nodave has been developed using a S7-1200 PLC. However, we have also
+        seen it work with S7-300 and S7-1500 PLCs.
       </para>
       <para>
         For new version of PLCs or TIA Portal, (in particular S7-1200 and
@@ -184,16 +188,10 @@
         however most likely it also works with newer versions.
       </para>
       <para>
-        Finally, the <link xlink:href="http://www.boost.org/">Boost</link> C++
-        library is needed (for compilation only, not at runtime). S7nodave has
-        been developed using version 1.47.0 of Boost, but it should also work
-        with newer versions, as long as the data structures of the optional,
-        shared_ptr and string_algo libraries are not changed.
-      </para>
-      <para>
-        A modified version of libnodave is bundled with s7nodave and
-        automatically compiled when s7nodave is compiled. Thus, you do not need
-        to download or compile libnodave.
+        A minimal version of Snap7 that contains all the parts needed by
+        s7nodave is bundled with s7nodave and automatically compiled when
+        s7nodave is compiled. Thus, you do not need to download or compile Snap7
+        yourself.
       </para>
       <para>
         S7nodave has been developed under Linux, but should work on most
@@ -205,9 +203,8 @@
     <section>
       <title>Compiling the Prerequisites</title>
       <para>
-        For compiling EPICS base and the asynDriver, refer to the respective
-        manuals. Boost does not have to be compiled but can just be extracted
-        to some directory on your disk.
+        For compiling EPICS Base and the asynDriver, refer to the respective
+        manuals.
       </para>
     </section>
     <section>
@@ -219,11 +216,21 @@
         might be the <filename>/opt/epics/modules</filename> directory.
       </para>
       <para>
-        Subsequently, you have edit the <filename>configure/RELEASE</filename>
-        file in order to configure the locations where EPICS base, the
-        asynDriver and the Boost library are installed. Change the definitions
-        of <literal>ASYN</literal>, <literal>RELEASE_INCLUDES</literal> and
-        <literal>EPICS_BASE</literal> to point to the right directories.
+        Subsequently, you have edit add the file
+        <filename>configure/RELEASE.local</filename> in order to configure the
+        locations where EPICS base and the asynDriver are installed. Add the
+        variables <literal>ASYN</literal> and <literal>EPICS_BASE</literal> to
+        this file and make them point to the right directories. You can find an
+        example in <filename>configure/EXAMPLE_RELEASE.local</filename>.
+      </para>
+      <para>
+        S7nodave must be compiled with a C++ compiler that supports C++ 11. For
+        some compilers, C++ 11 support is not enabled by default. In this case,
+        you have to add the file
+        <filename>configure/CONFIG_SITE.local</filename> and append the
+        appropriate compiler options to the <literal>USR_CXXFLAGS</literal>
+        variable. An example for such a configuration file can be found in
+        <filename>configure/EXAMPLE_CONFIG_SITE.local</filename>.
       </para>
       <para>
         After editing this paths, you can run <command>make</command> to build
@@ -1315,62 +1322,26 @@ my_LIBS += s7nodave
   
   <appendix xml:id="news">
     <title>News</title>
-    <section xml:id="news.v2.0">
-      <title>What's new in s7nodave 2.0</title>
+    <section xml:id="news.v3.0">
+      <title>What's new in s7nodave 3.0</title>
       <para>
-        Version 2.0.0 changed the parameter list of the
-        <link linkend="iocsh.s7nodaveConfigureIsoTcpPort">s7nodaveConfigureIsoTcpPort</link>
-        command and changed the address format for individual bits in the DB area.
+        Version 3.0.0 switched the backend library for communication with the
+        PLC from
+        <link xlink:href="http://libnodave.sourceforge.net/">libnodave</link> to
+        <link xlink:href="http://snap7.sourceforge.net/">Snap7</link>.
+        For most applications that use the EPICS device support, this change
+        should be completely transparent. Only when you wrote C/C++ code directly
+        using functions from libnodave, you will have to port this code to
+        Snap7.
       </para>
-      <section>
-        <title>New Parameters for the s7nodaveConfigureIsoTcpPort Command</title>
-        <para>
-          Two new parameters have been added to the
-          <link linkend="iocsh.s7nodaveConfigureIsoTcpPort">s7nodaveConfigureIsoTcpPort</link>
-          command so that the PLC rack and slot number can be specified.
-          This is necessary for some PLC configurations that do not use the
-          default setting of rack 0 and slot 0 that was always assumed
-          in older versions of this device support.
-        </para>
-        <para>
-          You will have to change existing IOC initialization scripts to include
-          those two parameters.
-          If older versions of s7nodave have worked for you, you can simply set
-          both parameters to zero.
-        </para>
-        <para>
-          For example, if you have used the line
-        </para>
-        <para>
-          <literal>s7nodaveConfigureIsoTcpPort("myPLC", "myplc.example.com", 0)</literal>
-        </para>
-        <para>
-          you should now use
-        </para>
-        <para>
-          <literal>s7nodaveConfigureIsoTcpPort("myPLC", "myplc.example.com", 0, 0, 0)</literal>.
-        </para>
-      </section>
-      <section>
-        <title>Changed Address Format for Bit Addresses in DB Areas</title>
-        <para>
-          Older versions of this device supported addressed individual bits in
-          DB areas using the format <literal>DBxx.DByy.z</literal>.
-          Unfortunately, this format did not match the format used in other
-          software tools for the S7 PLC, which led to some confusion.
-        </para>
-        <para>
-          In version 2.0.0, the format has been changed to the widely used
-          format <literal>DBxx.DBXyy.z</literal>. This means, that all
-          references to individual bits in DB areas have to be changed to match
-          the new format. This can simply be done by inserting the additional
-          <literal>X</literal> after the second <literal>DB</literal> term.
-        </para>
-        <para>
-          For example, the address <literal>DB20.DB10.4</literal> has to be
-          changed to <literal>DB20.DBX10.4</literal>.
-        </para>
-      </section>
+      <para>
+        The second major change in version 3.0.0 is that s7nodave now uses
+        features from C++ 11, so you will need a compiler that supports at least
+        that version of C++. Depending on your compiler, you might have to
+        explicitly enable support for C++ 11 (some compilers still expect C++ 03
+        by default). Switching to C++ 11 allowed us to get rid of the dependency
+        on the Boost library, which makes compiling this device support easier.
+      </para>
     </section>
   </appendix>
   

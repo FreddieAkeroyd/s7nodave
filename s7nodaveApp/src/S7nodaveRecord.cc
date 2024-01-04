@@ -1,5 +1,3 @@
-#include <boost/algorithm/string.hpp>
-
 #include <stdlib.h>
 
 #include <epicsEndian.h>
@@ -8,58 +6,51 @@
 
 #include "S7nodaveRecord.h"
 
-using boost::optional;
-using boost::tuple;
-using std::string;
+namespace s7nodave {
 
-S7nodaveRecord::S7nodaveRecord(dbCommon *record, s7nodaveRecordType recordType)
-{
+S7nodaveRecord::S7nodaveRecord(dbCommon *record, s7nodaveRecordType recordType) {
     this->record = record;
     this->recordType = recordType;
-    this->myAsynUser = NULL;
     this->deviceAddress = 0;
 
     // Buffers, etc. for new data
     this->processCallbackError = false;
     this->newDataLength = 0;
-    this->newData = NULL;
+    this->newData = nullptr;
 
     // Initialize structures for asyn
-    this->myAsynUser = NULL;
-    this->myAsynCommonInterface = NULL;
-    this->myAsynCommon = NULL;
-    this->myAsynS7nodaveInterface = NULL;
-    this->myAsynS7nodave = NULL;
+    this->myAsynUser = nullptr;
+    this->myAsynCommonInterface = nullptr;
+    this->myAsynCommon = nullptr;
+    this->myAsynS7nodaveInterface = nullptr;
+    this->myAsynS7nodave = nullptr;
 }
 
-S7nodaveRecord::~S7nodaveRecord()
-{
+S7nodaveRecord::~S7nodaveRecord() {
 }
 
-long S7nodaveRecord::initRecordError()
-{
+long S7nodaveRecord::initRecordError() {
     // Set PACT to 1 so that record will not be processed.
     this->record->pact = 1;
-    if (this->myAsynUser != NULL) {
+    if (this->myAsynUser) {
         int connected = 0;
         pasynManager->isConnected(this->myAsynUser, &connected);
         if (connected) {
             pasynManager->disconnect(this->myAsynUser);
         }
         pasynManager->freeAsynUser(this->myAsynUser);
-        this->myAsynUser = NULL;
+        this->myAsynUser = nullptr;
     }
-    this->myAsynCommonInterface = NULL;
-    this->myAsynCommon = NULL;
-    this->myAsynS7nodaveInterface = NULL;
-    this->myAsynS7nodave = NULL;
+    this->myAsynCommonInterface = nullptr;
+    this->myAsynCommon = nullptr;
+    this->myAsynS7nodaveInterface = nullptr;
+    this->myAsynS7nodave = nullptr;
     return RECORD_STATUS_ERROR;
 }
 
-long S7nodaveRecord::initRecord()
-{
+long S7nodaveRecord::initRecord() {
     // createAsynUser always succeeds (otherwise the thread is suspended)
-    this->myAsynUser = pasynManager->createAsynUser(asynProcessCallbackStatic, NULL);
+    this->myAsynUser = pasynManager->createAsynUser(asynProcessCallbackStatic, nullptr);
     this->myAsynUser->userPvt = this;
 
     // Initialize device address
@@ -69,22 +60,29 @@ long S7nodaveRecord::initRecord()
         return initRecordError();
     }
     char *deviceAddressCharString = addr.value.instio.string;
-    std::string deviceAddressString = (deviceAddressCharString == NULL) ? "" : deviceAddressCharString;
+    std::string deviceAddressString = (deviceAddressCharString == nullptr) ? "" : deviceAddressCharString;
     if (deviceAddressString.size() == 0) {
         asynPrint(this->myAsynUser, ASYN_TRACE_ERROR, "%s S7nodaveRecord::initRecord Invalid device address. Maybe mixed up INP/OUT or forgot '@'?\n", this->record->name);
         return initRecordError();
     }
     // Parse device address string
-    tuple< std::string, optional<S7nodaveRecordAddress::DeviceParameters>, optional<S7nodavePlcAddress>, optional<s7nodavePlcDataType>, bool > parserResult = S7nodaveRecordAddress::parseRecordAddress(deviceAddressString);
+    auto parserResult = S7nodaveRecordAddress::parseRecordAddress(deviceAddressString);
     // Check results
     std::string portName;
-    optional<S7nodaveRecordAddress::DeviceParameters> deviceParameters;
-    optional<S7nodavePlcAddress> plcAddress;
-    optional<s7nodavePlcDataType> plcDataType;
+    Optional<S7nodaveRecordAddress::DeviceParameters> deviceParameters;
+    Optional<PlcAddress> plcAddress;
+    Optional<s7nodavePlcDataType> plcDataType;
     bool parserResultValid;
-    boost::tie(portName, deviceParameters, plcAddress, plcDataType, parserResultValid) = parserResult;
-    if (!parserResultValid) {
-        // Find out which part caused the problem
+    std::tie(portName, deviceParameters, plcAddress, plcDataType, parserResultValid) = parserResult;
+    // plcDataType might be empty even if the specified address is valid, so we
+    // do not check it in the if clause.
+    if (!parserResultValid || portName.size() == 0 || !deviceParameters || !plcAddress) {
+        // Find out which part caused the problem. The order of the checks
+        // matters because if one part is empty because of an error, the other
+        // parts will be empty as well, even if they did not cause the problem.
+        // plcDataType is special because it being empty is not an error by
+        // itself, but if parserResultValid is not set and it is the only empty
+        // return value, it must be the cause of the problem.
         if (portName.size() == 0) {
             asynPrint(this->myAsynUser, ASYN_TRACE_ERROR, "%s S7nodaveRecord::initRecord Invalid port name in device address \"@%s\".\n", this->record->name, deviceAddressCharString);
         } else if (!deviceParameters) {
@@ -101,7 +99,7 @@ long S7nodaveRecord::initRecord()
     // them to the record address.
     S7nodaveRecordAddress::DeviceParameters originalDeviceParameters = *deviceParameters;
     this->extractDeviceParameters(*deviceParameters);
-    if (deviceParameters->size() != 0) {
+    if (!deviceParameters->empty()) {
         std::string firstParameterName = deviceParameters->begin()->first;
         asynPrint(this->myAsynUser, ASYN_TRACE_ERROR, "%s S7nodaveRecord::initRecord Invalid device parameter \"%s\" in device address \"@%s\".\n", this->record->name, firstParameterName.c_str(), deviceAddressCharString);
         return initRecordError();
@@ -114,7 +112,7 @@ long S7nodaveRecord::initRecord()
         asynPrint(this->myAsynUser, ASYN_TRACE_ERROR, "%s S7nodaveRecord::initRecord No data-type specified in device address  \"@%s\" or specified data-type not allowed for this record.\n", this->record->name, deviceAddressCharString);
         return initRecordError();
     }
-    optional<S7nodaveRecordAddress> recordAddress = S7nodaveRecordAddress::create(portName, *plcAddress, *plcDataType, originalDeviceParameters);
+    Optional<S7nodaveRecordAddress> recordAddress = S7nodaveRecordAddress::create(portName, *plcAddress, *plcDataType, originalDeviceParameters);
     if (!recordAddress) {
         asynPrint(this->myAsynUser, ASYN_TRACE_ERROR, "%s S7nodaveRecord::initRecord Invalid device address \"@%s\". Maybe the type of the specified memory address and the data type do not match?\n", this->record->name, deviceAddressCharString);
         return initRecordError();
@@ -129,13 +127,13 @@ long S7nodaveRecord::initRecord()
     }
     // Find needed interfaces
     this->myAsynCommonInterface = pasynManager->findInterface(this->myAsynUser, asynCommonType, 1);
-    if (this->myAsynCommonInterface == NULL) {
+    if (!this->myAsynCommonInterface) {
         asynPrint(this->myAsynUser, ASYN_TRACE_ERROR, "pasynManager->findInterface() did not return interface %s for port %s and record %s.\n", asynCommonType, this->recordAddress->getPortName().c_str(), this->record->name);
         return initRecordError();
     }
     this->myAsynCommon = static_cast<asynCommon *>(this->myAsynCommonInterface->pinterface);
     this->myAsynS7nodaveInterface = pasynManager->findInterface(this->myAsynUser, asynS7nodaveType, 1);
-    if (this->myAsynS7nodaveInterface == NULL) {
+    if (!this->myAsynS7nodaveInterface) {
         asynPrint(this->myAsynUser, ASYN_TRACE_ERROR, "pasynManager->findInterface() did not return interface %s for port %s and record %s.\n", asynCommonType, this->recordAddress->getPortName().c_str(), this->record->name);
         return initRecordError();
     }
@@ -144,26 +142,22 @@ long S7nodaveRecord::initRecord()
     return RECORD_STATUS_OK;
 }
 
-long S7nodaveRecord::convertRecord(int pass)
-{
+long S7nodaveRecord::convertRecord(int) {
     // No conversion
     return RECORD_STATUS_OK;
 }
 
-long S7nodaveRecord::getIoIntInfoRecord(int command, IOSCANPVT *iopvt)
-{
+long S7nodaveRecord::getIoIntInfoRecord(int, IOSCANPVT *) {
     return RECORD_STATUS_ERROR;
 }
 
-void S7nodaveRecord::asynProcessCallbackStatic(asynUser *pasynUser)
-{
+void S7nodaveRecord::asynProcessCallbackStatic(asynUser *pasynUser) {
     S7nodaveRecord *s7nodaveRecord = static_cast<S7nodaveRecord *>(pasynUser->userPvt);
     s7nodaveRecord->asynProcessCallback();
 }
 
-optional<s7nodavePlcDataType> S7nodaveRecord::getPlcDataType(S7nodavePlcAddress plcAddress, optional<s7nodavePlcDataType> plcDataType)
-{
-    switch (S7nodavePlcAddress::dataSizeInBits(plcAddress.getDataSize())) {
+Optional<s7nodavePlcDataType> S7nodaveRecord::getPlcDataType(PlcAddress plcAddress, Optional<s7nodavePlcDataType>) {
+    switch (PlcAddress::dataSizeInBits(plcAddress.getDataSize())) {
     case 1:
         return plcDataTypeBool;
     case 8:
@@ -173,22 +167,19 @@ optional<s7nodavePlcDataType> S7nodaveRecord::getPlcDataType(S7nodavePlcAddress 
     case 32:
         return plcDataTypeInt32;
     default:
-        return optional<s7nodavePlcDataType>();
+        return Optional<s7nodavePlcDataType>();
     }
 }
 
-void S7nodaveRecord::extractDeviceParameters(S7nodaveRecordAddress::DeviceParameters& deviceParameters)
-{
+void S7nodaveRecord::extractDeviceParameters(S7nodaveRecordAddress::DeviceParameters&) {
     // There are no device parameters supported by all record types (yet).
 }
 
-unsigned long int S7nodaveRecord::getIoBufferSizeInBits() const
-{
-    return static_cast<unsigned long int>(S7nodavePlcAddress::dataSizeInBits(this->recordAddress->getPlcAddress().getDataSize()));
+unsigned long int S7nodaveRecord::getIoBufferSizeInBits() const {
+    return static_cast<unsigned long int>(PlcAddress::dataSizeInBits(this->recordAddress->getPlcAddress().getDataSize()));
 }
 
-int S7nodaveRecord::getIoBufferSizeInBytes() const
-{
+int S7nodaveRecord::getIoBufferSizeInBytes() const {
     // Calculate buffer size
     // The driver interface only allows for reading complete bytes.
     // Therefore we have to account for the bits in the last partly used byte.
@@ -200,11 +191,9 @@ int S7nodaveRecord::getIoBufferSizeInBytes() const
     return bufferSize;
 }
 
-void S7nodaveRecord::convertFromOrToPlcByteOrder(void *buffer, int bufferSize, s7nodavePlcDataType plcDataType)
-{
+void S7nodaveRecord::convertFromOrToPlcByteOrder(void *buffer, int bufferSize, s7nodavePlcDataType plcDataType) {
     unsigned char *bufferAsChar = static_cast<unsigned char *>(buffer);
-    switch (plcDataType)
-    {
+    switch (plcDataType) {
     case plcDataTypeBool:
     case plcDataTypeInt8:
     case plcDataTypeUint8:
@@ -265,13 +254,12 @@ void S7nodaveRecord::convertFromOrToPlcByteOrder(void *buffer, int bufferSize, s
 
 const unsigned char S7nodaveRecord::bitMasks[] = {0, 1, 3, 7, 15, 31, 63, 127, 255};
 
-bool S7nodaveRecord::readFromPlc(void *buffer, int bufferSize) const
-{
+bool S7nodaveRecord::readFromPlc(void *buffer, int bufferSize) const {
     bool success = true;
-    S7nodavePlcAddress plcAddress = this->recordAddress->getPlcAddress();
+    PlcAddress plcAddress = this->recordAddress->getPlcAddress();
     unsigned long bufferSizeInBits = getIoBufferSizeInBits();
     int bytesRead;
-    if (buffer == NULL) {
+    if (!buffer) {
         asynPrint(this->myAsynUser, ASYN_TRACE_ERROR, "%s S7nodaveRecord::readFromPlc Got NULL pointer instead of buffer.\n", record->name);
         return false;
     }
@@ -289,7 +277,7 @@ bool S7nodaveRecord::readFromPlc(void *buffer, int bufferSize) const
             bufferUsedSize += 1;
         }
         bufferUsed = pasynManager->memMalloc(bufferUsedSize);
-        if (bufferUsed == NULL) {
+        if (!bufferUsed) {
             asynPrint(this->myAsynUser, ASYN_TRACE_ERROR, "%s S7nodaveRecord::readFromPlc Allocation of %d bytes of memory failed.\n", record->name, bufferUsedSize);
             return false;
         }
@@ -330,10 +318,10 @@ bool S7nodaveRecord::readFromPlc(void *buffer, int bufferSize) const
             }
         }
         // Always free the allocated memory.
-        if (bufferUsed != NULL) {
+        if (bufferUsed) {
             pasynManager->memFree(bufferUsed, bufferUsedSize);
         }
-        bufferUsed = NULL;
+        bufferUsed = nullptr;
     } else if (plcDataType == plcDataTypeBool && plcAddress.getStartBit() == 0 && bufferSizeInBits % 8 != 0) {
         // If we requested a boolean starting at bit zero, we do not have to
         // realign the data. However, we might have to mask the last byte, if
@@ -351,10 +339,9 @@ bool S7nodaveRecord::readFromPlc(void *buffer, int bufferSize) const
     return success;
 }
 
-bool S7nodaveRecord::writeToPlc(void *buffer, int bufferSize) const
-{
+bool S7nodaveRecord::writeToPlc(void *buffer, int bufferSize) const {
     bool success = true;
-    S7nodavePlcAddress plcAddress = this->recordAddress->getPlcAddress();
+    PlcAddress plcAddress = this->recordAddress->getPlcAddress();
     s7nodavePlcDataType plcDataType = this->recordAddress->getPlcDataType();
     unsigned long bufferSizeInBits = getIoBufferSizeInBits();
     convertFromOrToPlcByteOrder(buffer, bufferSize, plcDataType);
@@ -362,7 +349,7 @@ bool S7nodaveRecord::writeToPlc(void *buffer, int bufferSize) const
     // If we have an address that is not starting at the beginning of a byte
     // we have to rearrange the data.
     bool needIntermediateBuffer = (plcDataType == plcDataTypeBool && startBit != 0);
-    void *bufferUsed = NULL;
+    void *bufferUsed = nullptr;
     int bufferUsedSize = 0;
     if (needIntermediateBuffer) {
         // The intermediate buffer might be one byte bigger
@@ -371,7 +358,7 @@ bool S7nodaveRecord::writeToPlc(void *buffer, int bufferSize) const
             bufferUsedSize += 1;
         }
         bufferUsed = pasynManager->memMalloc(bufferUsedSize);
-        if (bufferUsed == NULL) {
+        if (!bufferUsed) {
             asynPrint(this->myAsynUser, ASYN_TRACE_ERROR, "%s S7nodaveRecord::writeToPlc Allocation of %d bytes of memory failed.\n", record->name, bufferUsedSize);
             return false;
         }
@@ -452,10 +439,12 @@ bool S7nodaveRecord::writeToPlc(void *buffer, int bufferSize) const
     }
     if (needIntermediateBuffer) {
         // Free buffer memory
-        if (bufferUsed != NULL) {
+        if (bufferUsed) {
             pasynManager->memFree(bufferUsed, bufferUsedSize);
-            bufferUsed = NULL;
+            bufferUsed = nullptr;
         }
     }
     return success;
 }
+
+} // namespace s7nodave

@@ -3,34 +3,33 @@
 
 #include <aoRecord.h>
 
+#include "AnalogSupport.h"
 #include "S7nodaveOutputRecord.h"
 #include "s7nodave.h"
 #include "s7nodaveAsyn.h"
-#include "S7nodaveAnalogSupport.h"
+
+namespace s7nodave {
 
 /**
  * Device support for ao record.
  */
-class S7nodaveAoRecord : public S7nodaveOutputRecord
-{
+class S7nodaveAoRecord : public S7nodaveOutputRecord {
 public:
     /**
      * Constructor. The passed record pointer is stored and used by all methods,
      * which need to access record fields.
      */
     S7nodaveAoRecord(dbCommon *record) :
-        S7nodaveOutputRecord(record, aoRecordType)
-    {
+        S7nodaveOutputRecord(record, aoRecordType) {
         // Conversion parameters
         this->deviceLowValue = 0;
         this->deviceHighValue = 0;
     };
 
-    virtual long initRecord()
-    {
+    virtual long initRecord() override {
         long status = S7nodaveOutputRecord::initRecord();
         if (status == RECORD_STATUS_OK) {
-            S7nodaveAnalogSupport::initDeviceLimits(*this->recordAddress, this->deviceLowValue, this->deviceHighValue);
+            AnalogSupport::initDeviceLimits(*this->recordAddress, this->deviceLowValue, this->deviceHighValue);
             this->convertRecord(1);
             // If the PLC is using the float data-type, we do not want the
             // VAL field of this record to be overwritten with a value
@@ -50,12 +49,11 @@ public:
         }
     };
 
-    virtual long convertRecord(int pass)
-    {
+    virtual long convertRecord(int pass) override {
         if (pass == 0) {
             return RECORD_STATUS_OK;
         }
-        return S7nodaveAnalogSupport::convert<aoRecord>(this->record, this->deviceLowValue, this->deviceHighValue);
+        return AnalogSupport::convert<aoRecord>(this->record, this->deviceLowValue, this->deviceHighValue);
     };
 
 protected:
@@ -71,37 +69,34 @@ protected:
      */
     double deviceHighValue;
 
-    virtual void extractDeviceParameters(S7nodaveRecordAddress::DeviceParameters& deviceParameters)
-    {
+    virtual void extractDeviceParameters(S7nodaveRecordAddress::DeviceParameters& deviceParameters) override {
         // Let super classes extract their parameters
         S7nodaveRecord::extractDeviceParameters(deviceParameters);
 
         // Extract deviceLowValue (DLV) and deviceHighValue(DHV) parameters,
         // if they have been given in the address string.
-        S7nodaveAnalogSupport::extractDeviceParameters(this->myAsynUser, this->record, deviceParameters, this->deviceLowValue, this->deviceHighValue);
+        AnalogSupport::extractDeviceParameters(this->myAsynUser, this->record, deviceParameters, this->deviceLowValue, this->deviceHighValue);
     }
 
-    virtual boost::optional<s7nodavePlcDataType> getPlcDataType(S7nodavePlcAddress plcAddress, boost::optional<s7nodavePlcDataType> suggestion)
-    {
-        boost::optional<s7nodavePlcDataType> defaultType = S7nodaveOutputRecord::getPlcDataType(plcAddress, suggestion);
-        return S7nodaveAnalogSupport::getPlcDataType(plcAddress, suggestion, *defaultType);
+    virtual Optional<s7nodavePlcDataType> getPlcDataType(PlcAddress plcAddress, Optional<s7nodavePlcDataType> suggestion) override {
+        auto defaultType = S7nodaveOutputRecord::getPlcDataType(plcAddress, suggestion);
+        return AnalogSupport::getPlcDataType(plcAddress, suggestion, defaultType);
     };
 
-    virtual DBLINK getDeviceAddress() const
-    {
+    virtual DBLINK getDeviceAddress() const override {
         aoRecord *aoRec = reinterpret_cast<aoRecord *>(this->record);
         return aoRec->out;
     };
 
-    virtual void readFromRecord(void *buffer, int bufferSize) const
-    {
-        S7nodaveAnalogSupport::write<aoRecord>(this->myAsynUser, this->record, buffer, bufferSize, this->recordAddress->getPlcDataType());
+    virtual void readFromRecord(void *buffer, int bufferSize) const override {
+        AnalogSupport::write<aoRecord>(this->myAsynUser, this->record, buffer, bufferSize, this->recordAddress->getPlcDataType());
     };
 
-    virtual long writeToRecord(void *buffer, int bufferSize)
-    {
-        return S7nodaveAnalogSupport::read<aoRecord>(this->myAsynUser, this->record, buffer, bufferSize, this->recordAddress->getPlcDataType());
+    virtual long writeToRecord(void *buffer, int bufferSize) override {
+        return AnalogSupport::read<aoRecord>(this->myAsynUser, this->record, buffer, bufferSize, this->recordAddress->getPlcDataType());
     };
 };
 
-#endif
+} // namespace s7nodave
+
+#endif // S7nodaveAoRecord_h

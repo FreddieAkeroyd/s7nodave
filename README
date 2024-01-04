@@ -6,7 +6,7 @@ ABOUT
 -----
 
 S7nodave is a device support and driver for using S7 PLCs with an EPICS IOC,
-which is based on libnodave (http://libnodave.sourceforge.net/).
+which is based on Snap7 (http://snap7.sourceforge.net/).
 
 Using s7nodave, you can read variables from or write data to the PLC using the 
 ISO on TCP protocol. You only have to specify the memory address and data-type
@@ -37,21 +37,16 @@ damaged or even PERSONS BEING INJURED by misbehaving equipment.
 COMPILING
 ---------
 
-You need to edit the configure/RELEASE file and set the paths to match the
-locations of your EPICS base and Asyn installation directories.
+You need to add the configure/RELEASE.local file and set the EPICS_BASE and ASYN
+variables to the locations of your EPICS Base and Asyn installation directories.
 
-S7nodave for EPICS also has (compile-time) dependencies on some headers from the
-Boost C++ library (http://www.boost.org/). If these headers are not installed in
-one of the default locations (usually /usr/include and /usr/local/include), you
-have to add the Boost directory to the compiler flags. Please have a look at the 
-corresponding line in configure/RELEASE for an example. s7nodave for EPICS was
-originally compiled against version 1.47 of the Boost library, but it might also
-work with newer versions of this library. Boost itself does not need to be 
-compiled, the header files just have to be present.
+You might also have to add configure/CONFIG_SITE.local and append the
+appropriate compiler options (e.g. "-std=c++11") for enabling C++ 11 support to
+the USR_CXXFLAGS variable.
 
-As libnodave is bundled with s7nodave for EPICS, there is no need to compile
-libnodave separately. It will be compiled and placed in the lib directory
-automatically when running make.
+As Snap7 is bundled with s7nodave for EPICS, there is no need to compile Snap7
+separately. It will be compiled and placed in the lib directory automatically
+when running make.
 
 
 USING THE DEVICE SUPPORT / DRIVER
@@ -92,7 +87,7 @@ applications of this software are always welcome.
 
 Copyright notice for s7nodave for EPICS:
  
-Copyright 2011-2013 aquenos GmbH
+Copyright 2011-2021 aquenos GmbH
 
 S7nodave for EPICS is free software: you can redistribute it and/or modify it 
 under the terms of the GNU General Public License as published by the Free 
@@ -133,35 +128,57 @@ For the license of Asyn please refer to the LICENSE file in the Asyn directory.
 
 ================================================================================
 
-This software uses and distributes (a modified version of) libnodave. Copyright
-notice for libnodave:
+This software uses and distributes (a minimal version of) Snap7. Copyright
+notice for Snap7:
 
-Copyright Thomas Hergenhahn (thomas.hergenhahn@web.de) 2002..2005
- 
-S5 basic communication parts Copyright Andrew Rostovtsew 2004.
+Copyright 2013, 2015 Davide Nardella
 
-Libnodave is free software; you can redistribute it and/or modify
-it under the terms of the GNU Library General Public License as published by
-the Free Software Foundation; either version 2, or (at your option)
-any later version.
+Snap7 is free software: you can redistribute it and/or modify it under the terms
+of the Lesser GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version.
 
-Please refer to the LICENSE and README files in s7nodaveApp/libnodave for
-more information about libnodave's softare license.
+It means that you can distribute your commercial software linked with Snap7
+without the requirement to distribute the source code of your application and
+without the requirement that your application be itself distributed under LGPL.
+
+Snap7 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE.  See the Lesser GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License and a copy of
+Lesser GNU General Public License along with Snap7. If not, see
+http://www.gnu.org/licenses/.
 
 ================================================================================
 
-This software uses various parts from the Boost library.
+This tests for this software use Google Test. Copyright notice for Google Test:
 
-Copyright notice for Boost optional:
-Copyright (C) 2003, 2008 Fernando Luis Cacciola Carballal.
+Copyright 2008, Google Inc.
+All rights reserved.
 
-Copyright notice for Boost shared_ptr:
-(C) Copyright Greg Colvin and Beman Dawes 1998, 1999.
-Copyright (c) 2001-2008 Peter Dimov
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
 
-Copyright notice for string_algo:
-Copyright Pavol Droba 2002-2004.
+    * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+    * Neither the name of Google Inc. nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
 
-All components of the Boost library are licensed under the terms of the Boost
-Software License, Version 1.0. See http://www.boost.org/LICENSE_1_0.txt for the
-license text.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

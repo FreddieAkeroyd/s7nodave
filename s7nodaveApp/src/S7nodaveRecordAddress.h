@@ -3,21 +3,21 @@
 
 #include <map>
 #include <string>
-
-#include <boost/optional/optional.hpp>
-#include <boost/tuple/tuple.hpp>
+#include <tuple>
 
 #include "s7nodaveAsyn.h"
 
-#include "S7nodavePlcAddress.h"
+#include "Optional.h"
+#include "PlcAddress.h"
+
+namespace s7nodave {
 
 /**
  * Represents the whole device address given for a record.
  */
-class S7nodaveRecordAddress
-{
+class S7nodaveRecordAddress {
 public:
-    typedef std::map< std::string, boost::optional<std::string> > DeviceParameters;
+    using DeviceParameters = std::map<std::string, Optional<std::string>>;
 
     /**
      * Returns the port name of the device.
@@ -27,7 +27,7 @@ public:
     /**
      * Returns the PLC memory address.
      */
-    S7nodavePlcAddress getPlcAddress() const;
+    PlcAddress getPlcAddress() const;
 
     /**
      * Returns the PLC data-type.
@@ -54,20 +54,20 @@ public:
      * are guaranteed to be set. The PLC data-type is only set if it has been
      * specified in the record's device address string.
      */
-    static boost::tuple< std::string, boost::optional<DeviceParameters>, boost::optional<S7nodavePlcAddress>, boost::optional<s7nodavePlcDataType>, bool > parseRecordAddress(std::string addressString);
+    static std::tuple< std::string, Optional<DeviceParameters>, Optional<PlcAddress>, Optional<s7nodavePlcDataType>, bool > parseRecordAddress(std::string addressString);
 
     /**
      * Creates a record device address. If the parameters passed to this method
      * are invalid, an empty result is returned.
      */
-    static boost::optional<S7nodaveRecordAddress> create(std::string portName, S7nodavePlcAddress plcAddress, s7nodavePlcDataType plcDataType, DeviceParameters deviceParameters);
+    static Optional<S7nodaveRecordAddress> create(std::string portName, PlcAddress plcAddress, s7nodavePlcDataType plcDataType, DeviceParameters deviceParameters);
 
 protected:
     /**
      * Protected constructor. The static create method should be used instead
      * for creating an instance of this class.
      */
-    S7nodaveRecordAddress(std::string portName, S7nodavePlcAddress plcAddress, s7nodavePlcDataType plcDataType, DeviceParameters deviceParameters);
+    S7nodaveRecordAddress(std::string portName, PlcAddress plcAddress, s7nodavePlcDataType plcDataType, DeviceParameters deviceParameters);
 
     /**
      * Device's port name.
@@ -77,7 +77,7 @@ protected:
     /**
      * PLC memory address.
      */
-    S7nodavePlcAddress plcAddress;
+    PlcAddress plcAddress;
 
     /**
      * PLC data-type.
@@ -90,4 +90,6 @@ protected:
     DeviceParameters recordParameters;
 };
 
-#endif
+} // namespace s7nodave
+
+#endif // S7nodaveRecordAddress_h

@@ -7,17 +7,18 @@
 #include <epicsGuard.h>
 #include <recGbl.h>
 
-#include "S7nodavePollGroup.h"
+#include "PollGroup.h"
 #include "s7nodave.h"
 
 #include "S7nodaveInputRecord.h"
 
-void S7nodaveInputRecord::asynProcessCallback()
-{
+namespace s7nodave {
+
+void S7nodaveInputRecord::asynProcessCallback() {
     bool success = true;
     int bufferSize = this->getIoBufferSizeInBytes();
     void *buffer = pasynManager->memMalloc(bufferSize);
-    if (buffer == NULL) {
+    if (!buffer) {
         asynPrint(this->myAsynUser, ASYN_TRACE_ERROR, "%s S7nodaveInputRecord::asynProcessCallback Allocation of %d bytes of memory failed.\n", record->name, bufferSize);
         success = false;
     }
@@ -25,10 +26,10 @@ void S7nodaveInputRecord::asynProcessCallback()
         success = this->readFromPlc(buffer, bufferSize);
     }
     if (!success) {
-        if (buffer != NULL) {
+        if (buffer) {
             pasynManager->memFree(buffer, bufferSize);
         }
-        buffer = NULL;
+        buffer = nullptr;
         bufferSize = 0;
     }
     // We have to lock the mutex in order to synchronize with the get data
@@ -37,7 +38,7 @@ void S7nodaveInputRecord::asynProcessCallback()
         epicsGuard<epicsMutex> guard(this->newDataMutex);
         // Check that newData is empty, otherwise we have to free it in order
         // to avoid a memory leak.
-        if (this->newData != NULL) {
+        if (this->newData) {
             pasynManager->memFree(this->newData, this->newDataLength);
         }
         this->newData = buffer;
@@ -55,8 +56,7 @@ void S7nodaveInputRecord::asynProcessCallback()
     }
 }
 
-long S7nodaveInputRecord::initRecord()
-{
+long S7nodaveInputRecord::initRecord() {
     long status = S7nodaveRecord::initRecord();
     if (status == RECORD_STATUS_OK) {
         // Initialize "I/O Intr" scan support
@@ -65,11 +65,10 @@ long S7nodaveInputRecord::initRecord()
     return status;
 }
 
-long S7nodaveInputRecord::processRecord()
-{
+long S7nodaveInputRecord::processRecord() {
     bool haveNewData = false;
     bool processCallbackError = false;
-    void *newData = NULL;
+    void *newData = nullptr;
     size_t newDataLength = 0;
     // We have to lock a mutex in order to synchronize with
     // asynProccessCallback(), which places the new data in the corresponding
@@ -78,17 +77,17 @@ long S7nodaveInputRecord::processRecord()
         epicsGuard<epicsMutex> guard(this->newDataMutex);
         newData = this->newData;
         newDataLength = this->newDataLength;
-        haveNewData = (newData != NULL);
+        haveNewData = (newData != nullptr);
         processCallbackError = this->processCallbackError;
         this->processCallbackError = false;
-        this->newData = NULL;
+        this->newData = nullptr;
         this->newDataLength = 0;
     }
     if (processCallbackError) {
         // An error occurred while trying to read data for this record.
-        if (newData != NULL) {
+        if (newData) {
             pasynManager->memFree(newData, newDataLength);
-            newData = NULL;
+            newData = nullptr;
         }
         recGblSetSevr(this->record, READ_ALARM, INVALID_ALARM);
         // We still return RECORD_STATUS_OK, because it was not this method
@@ -124,14 +123,21 @@ long S7nodaveInputRecord::processRecord()
         // the record has been read.
         this->record->udf = 0;
         pasynManager->memFree(newData, newDataLength);
-        newData = NULL;
+        newData = nullptr;
     }
     return status;
 }
 
-long S7nodaveInputRecord::getIoIntInfoRecord(int command, IOSCANPVT *iopvt)
-{
-    boost::optional<S7nodavePollGroup&> pollGroup = S7nodavePollGroup::find(this->recordAddress->getPortName(), this->pollGroupName);
+long S7nodaveInputRecord::getIoIntInfoRecord(int command, IOSCANPVT *iopvt) {
+    // Unlike processRecord, getIoIntInfoRecord might be called even if the
+    // device support for the record has not been initialized properly. In this
+    // case myAsynUser will be null and the following code will lead to a
+    // segmentation fault, so we check for this condition and return in this
+    // case.
+    if (!this->myAsynUser) {
+        return RECORD_STATUS_ERROR;
+    }
+    std::shared_ptr<PollGroup> pollGroup = PollGroup::find(this->recordAddress->getPortName(), this->pollGroupName);
     if (!pollGroup) {
         asynPrint(this->myAsynUser, ASYN_TRACE_ERROR, "%s S7nodaveInputRecord::getIoIntInfoRecord Could not find poll group \"%s\".\n", this->record->name, this->pollGroupName.c_str());
         return RECORD_STATUS_ERROR;
@@ -147,15 +153,14 @@ long S7nodaveInputRecord::getIoIntInfoRecord(int command, IOSCANPVT *iopvt)
     return RECORD_STATUS_OK;
 }
 
-void S7nodaveInputRecord::extractDeviceParameters(S7nodaveRecordAddress::DeviceParameters& deviceParameters)
-{
+void S7nodaveInputRecord::extractDeviceParameters(S7nodaveRecordAddress::DeviceParameters& deviceParameters) {
     // Let super classes extract their parameters
     S7nodaveRecord::extractDeviceParameters(deviceParameters);
 
     // Extract poll-group name (PG parameter)
-    S7nodaveRecordAddress::DeviceParameters::iterator pg = deviceParameters.find("PG");
+    auto pg = deviceParameters.find("PG");
     if (pg != deviceParameters.end()) {
-        boost::optional<std::string> value = pg->second;
+        Optional<std::string> value = pg->second;
         if (value) {
             this->pollGroupName = *value;
             deviceParameters.erase(pg);
@@ -165,9 +170,8 @@ void S7nodaveInputRecord::extractDeviceParameters(S7nodaveRecordAddress::DeviceP
     }
 }
 
-void S7nodaveInputRecord::preparePollRequest(S7nodavePollService& pollService)
-{
-    S7nodavePlcAddress plcAddress = this->recordAddress->getPlcAddress();
+void S7nodaveInputRecord::preparePollRequest(PollService& pollService) {
+    PlcAddress plcAddress = this->recordAddress->getPlcAddress();
     s7nodavePlcDataType plcDataType = this->recordAddress->getPlcDataType();
     unsigned long bufferSizeInBits = getIoBufferSizeInBits();
     unsigned int bufferSizeInBytes = bufferSizeInBits / 8 + ((bufferSizeInBits % 8 == 0) ? 0 : 1);
@@ -180,16 +184,15 @@ void S7nodaveInputRecord::preparePollRequest(S7nodavePollService& pollService)
         }
     }
     void *buffer = pasynManager->memMalloc(bufferSizeInBytes);
-    if (buffer == NULL) {
+    if (!buffer) {
         asynPrint(this->myAsynUser, ASYN_TRACE_ERROR, "%s S7nodaveRecord::preparePollRequest Allocation of %d bytes of memory failed.\n", record->name, bufferSizeInBytes);
         return;
     }
     pollService.requestRead(plcAddress, bufferSizeInBytes, buffer);
 }
 
-void S7nodaveInputRecord::processPollResponse(bool success, int bufferSize, void *buffer)
-{
-    S7nodavePlcAddress plcAddress = this->recordAddress->getPlcAddress();
+void S7nodaveInputRecord::processPollResponse(bool success, int bufferSize, void *buffer) {
+    PlcAddress plcAddress = this->recordAddress->getPlcAddress();
     s7nodavePlcDataType plcDataType = this->recordAddress->getPlcDataType();
     unsigned long bufferSizeInBits = getIoBufferSizeInBits();
     if (plcDataType == plcDataTypeBool && plcAddress.getStartBit() != 0) {
@@ -198,7 +201,7 @@ void S7nodaveInputRecord::processPollResponse(bool success, int bufferSize, void
         if (success) {
             int buffer2Size = bufferSizeInBits / 8 + ((bufferSizeInBits % 8 == 0) ? 0 : 1);
             void *buffer2 = pasynManager->memMalloc(buffer2Size);
-            if (buffer == NULL) {
+            if (!buffer) {
                 asynPrint(this->myAsynUser, ASYN_TRACE_ERROR, "%s S7nodaveRecord::processPollResponse Allocation of %d bytes of memory failed.\n", record->name, buffer2Size);
                 success = false;
             }
@@ -254,7 +257,7 @@ void S7nodaveInputRecord::processPollResponse(bool success, int bufferSize, void
         // preserve the buffer, so we can free it now instead of doing this
         // during record processing.
         pasynManager->memFree(buffer, bufferSize);
-        buffer = NULL;
+        buffer = nullptr;
         bufferSize = 0;
     }
     // We have to lock the mutex in order to synchronize with the get data
@@ -263,7 +266,7 @@ void S7nodaveInputRecord::processPollResponse(bool success, int bufferSize, void
         epicsGuard<epicsMutex> guard(this->newDataMutex);
         // Check that newData is empty, otherwise we have to free it in order
         // to avoid a memory leak.
-        if (this->newData != NULL) {
+        if (this->newData) {
             pasynManager->memFree(this->newData, this->newDataLength);
         }
         this->newData = buffer;
@@ -273,3 +276,5 @@ void S7nodaveInputRecord::processPollResponse(bool success, int bufferSize, void
     // Queue a request for processRecord to be called.
     scanIoRequest(this->ioScanPvt);
 }
+
+} // namespace s7nodave

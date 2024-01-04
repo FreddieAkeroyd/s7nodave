@@ -10,65 +10,60 @@
 #include <dbAccessDefs.h>
 #include <dbFldTypes.h>
 
+#include "ArraySupport.h"
 #include "S7nodaveOutputRecord.h"
 #include "s7nodave.h"
 #include "s7nodaveAsyn.h"
-#include "S7nodaveArraySupport.h"
+
+namespace s7nodave {
 
 /**
  * Device support for aao record.
  */
-class S7nodaveAaoRecord : public S7nodaveOutputRecord
-{
+class S7nodaveAaoRecord : public S7nodaveOutputRecord {
 public:
     /**
      * Constructor. The passed record pointer is stored and used by all methods,
      * which need to access record fields.
      */
     S7nodaveAaoRecord(dbCommon *record) :
-        S7nodaveOutputRecord(record, aaoRecordType)
-    {
+        S7nodaveOutputRecord(record, aaoRecordType) {
     };
 
 protected:
 
-    virtual long initRecord()
-    {
+    virtual long initRecord() override {
         // In contrast to the waveform record, the aao record does not allocate
         // the memory for BPTR before calling the device support's init method.
         // It will only check after device support initialization whether BPTR
         // has been initialized by the device support and allocate memory if
         // not.
         aaoRecord *aaoRec = reinterpret_cast<aaoRecord *>(this->record);
-        if (aaoRec->bptr == NULL) {
+        if (!aaoRec->bptr) {
             // Please note that we never free the memory allocated here.
             // However, the record routine itself does the same thing and as
-            // their is no method for removing records from the IOC during
+            // there is no method for removing records from the IOC during
             // run-time, this is probably okay.
             aaoRec->bptr = callocMustSucceed(aaoRec->nelm, dbValueSize(aaoRec->ftvl), "aao: buffer calloc failed");
         }
         return S7nodaveOutputRecord::initRecord();
     };
 
-    virtual boost::optional<s7nodavePlcDataType> getPlcDataType(S7nodavePlcAddress plcAddress, boost::optional<s7nodavePlcDataType> suggestion)
-    {
+    virtual Optional<s7nodavePlcDataType> getPlcDataType(PlcAddress plcAddress, Optional<s7nodavePlcDataType> suggestion) override {
         aaoRecord *aaoRec = reinterpret_cast<aaoRecord *>(this->record);
-        return S7nodaveArraySupport::getPlcDataTypeOut(plcAddress, suggestion, aaoRec->ftvl);
+        return ArraySupport::getPlcDataTypeOut(plcAddress, suggestion, aaoRec->ftvl);
     };
 
-    virtual DBLINK getDeviceAddress() const
-    {
+    virtual DBLINK getDeviceAddress() const override {
         aaoRecord *aaoRec = reinterpret_cast<aaoRecord *>(this->record);
         return aaoRec->out;
     };
 
-    virtual void readFromRecord(void *buffer, int bufferSize) const
-    {
-        S7nodaveArraySupport::write<aaoRecord>(this->myAsynUser, this->record, buffer, bufferSize, this->recordAddress->getPlcDataType());
+    virtual void readFromRecord(void *buffer, int bufferSize) const override {
+        ArraySupport::write<aaoRecord>(this->myAsynUser, this->record, buffer, bufferSize, this->recordAddress->getPlcDataType());
     };
 
-    virtual unsigned long int getIoBufferSizeInBits() const
-    {
+    virtual unsigned long int getIoBufferSizeInBits() const override {
         aaoRecord *aaoRec = reinterpret_cast<aaoRecord *>(this->record);
         if (aaoRec->ftvl == DBF_STRING) {
             // String is special because each element takes 40 bytes, while
@@ -81,10 +76,11 @@ protected:
         }
     };
 
-    virtual long writeToRecord(void *buffer, int bufferSize)
-    {
-        return S7nodaveArraySupport::read<aaoRecord>(this->myAsynUser, this->record, buffer, bufferSize, this->recordAddress->getPlcDataType());
+    virtual long writeToRecord(void *buffer, int bufferSize) override {
+        return ArraySupport::read<aaoRecord>(this->myAsynUser, this->record, buffer, bufferSize, this->recordAddress->getPlcDataType());
     };
 };
 
-#endif
+} // namespace s7nodave
+
+#endif // S7nodaveAaoRecord_h

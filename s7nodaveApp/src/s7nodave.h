@@ -31,4 +31,4 @@
 #define MAX_STRING_SIZE 40
 #endif
 
-#endif
+#endif // devS7nodave_h
