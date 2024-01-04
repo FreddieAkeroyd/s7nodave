@@ -7,50 +7,47 @@
 #include "S7nodaveOutputRecord.h"
 #include "s7nodave.h"
 #include "s7nodaveAsyn.h"
-#include "S7nodaveStringSupport.h"
+#include "StringSupport.h"
+
+namespace s7nodave {
 
 /**
  * Device support for stringout record.
  */
-class S7nodaveStringoutRecord : public S7nodaveOutputRecord
-{
+class S7nodaveStringoutRecord : public S7nodaveOutputRecord {
 public:
     /**
      * Constructor. The passed record pointer is stored and used by all methods,
      * which need to access record fields.
      */
     S7nodaveStringoutRecord(dbCommon *record) :
-        S7nodaveOutputRecord(record, stringoutRecordType)
-    {
+        S7nodaveOutputRecord(record, stringoutRecordType) {
     };
 
 protected:
 
-    virtual boost::optional<s7nodavePlcDataType> getPlcDataType(S7nodavePlcAddress plcAddress, boost::optional<s7nodavePlcDataType> suggestion)
-    {
-        return S7nodaveStringSupport::getPlcDataType(plcAddress, suggestion);
+    virtual Optional<s7nodavePlcDataType> getPlcDataType(PlcAddress plcAddress, Optional<s7nodavePlcDataType> suggestion) override {
+        return StringSupport::getPlcDataType(plcAddress, suggestion);
     };
 
-    virtual DBLINK getDeviceAddress() const
-    {
+    virtual DBLINK getDeviceAddress() const override {
         stringoutRecord *soRec = reinterpret_cast<stringoutRecord *>(this->record);
         return soRec->out;
     };
 
-    virtual void readFromRecord(void *buffer, int bufferSize) const
-    {
-        S7nodaveStringSupport::write<stringoutRecord>(this->myAsynUser, this->record, buffer, bufferSize, this->recordAddress->getPlcDataType());
+    virtual void readFromRecord(void *buffer, int bufferSize) const override {
+        StringSupport::write<stringoutRecord>(this->myAsynUser, this->record, buffer, bufferSize, this->recordAddress->getPlcDataType());
     };
 
-    virtual unsigned long int getIoBufferSizeInBits() const
-    {
-        return S7nodaveStringSupport::getIoBufferSizeInBits(this->recordAddress->getPlcDataType());
+    virtual unsigned long int getIoBufferSizeInBits() const override {
+        return StringSupport::getIoBufferSizeInBits(this->recordAddress->getPlcDataType());
     };
 
-    virtual long writeToRecord(void *buffer, int bufferSize)
-    {
-        return S7nodaveStringSupport::read<stringoutRecord>(this->myAsynUser, this->record, buffer, bufferSize, this->recordAddress->getPlcDataType());
+    virtual long writeToRecord(void *buffer, int bufferSize) override {
+        return StringSupport::read<stringoutRecord>(this->myAsynUser, this->record, buffer, bufferSize, this->recordAddress->getPlcDataType());
     };
 };
 
-#endif
+} // namespace s7nodave
+
+#endif // S7nodaveStringoutRecord_h

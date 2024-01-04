@@ -86,6 +86,10 @@ typedef struct asynS7nodaveReadItem {
      */
     int bytesRead;
     /**
+     * Status code associated with the result of the read process.
+     */
+    asynStatus status;
+    /**
      * Next item to read or NULL if this is the last item in the list.
      */
     struct asynS7nodaveReadItem *next;
@@ -193,7 +197,7 @@ long s7nodaveConvertRecord(dbCommon *record, int pass);
 long s7nodaveGetIoIntInfoRecord(int command, dbCommon *record, IOSCANPVT *iopvt);
 
 #ifdef __cplusplus
-}
+} // extern "C"
 #endif
 
-#endif
+#endif // s7nodaveAsyn_h

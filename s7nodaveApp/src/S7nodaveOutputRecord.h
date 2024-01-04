@@ -3,11 +3,12 @@
 
 #include "S7nodaveRecord.h"
 
+namespace s7nodave {
+
 /**
  * Base class of all device support classes for output records.
  */
-class S7nodaveOutputRecord : public S7nodaveRecord
-{
+class S7nodaveOutputRecord : public S7nodaveRecord {
 protected:
     /**
      * Constructor. The record is stored in an attribute of this class and
@@ -19,11 +20,11 @@ protected:
         S7nodaveRecord(record, recordType) {
     };
 
-    virtual long initRecord();
+    virtual long initRecord() override;
 
-    virtual void asynProcessCallback();
+    virtual void asynProcessCallback() override;
 
-    virtual long processRecord();
+    virtual long processRecord() override;
 
     /**
      * Reads the value from the record into the buffer. The buffer must have
@@ -43,4 +44,6 @@ protected:
     virtual long interceptInitRecordBeforeValueInit();
 };
 
-#endif
+} // namespace s7nodave
+
+#endif // S7nodaveOutputRecord_h

@@ -13,8 +13,7 @@
 /*
  * aai record type
  */
-static long initAaiRecord (dbCommon *record)
-{
+static long initAaiRecord (dbCommon *record) {
     return s7nodaveInitRecord(record, aaiRecordType);
 }
 
@@ -39,8 +38,7 @@ epicsExportAddress(dset, devAaiS7nodave);
 /*
  * aao record type
  */
-static long initAaoRecord (dbCommon *record)
-{
+static long initAaoRecord (dbCommon *record) {
     return s7nodaveInitRecord(record, aaoRecordType);
 }
 
@@ -65,8 +63,7 @@ epicsExportAddress(dset, devAaoS7nodave);
 /*
  * ai record type
  */
-static long initAiRecord (dbCommon *record)
-{
+static long initAiRecord (dbCommon *record) {
     return s7nodaveInitRecord(record, aiRecordType);
 }
 
@@ -93,8 +90,7 @@ epicsExportAddress(dset, devAiS7nodave);
 /*
  * ao record type
  */
-static long initAoRecord (dbCommon *record)
-{
+static long initAoRecord (dbCommon *record) {
     return s7nodaveInitRecord(record, aoRecordType);
 }
 
@@ -121,8 +117,7 @@ epicsExportAddress(dset, devAoS7nodave);
 /*
  * bi record type
  */
-static long initBiRecord (dbCommon *record)
-{
+static long initBiRecord (dbCommon *record) {
     return s7nodaveInitRecord(record, biRecordType);
 }
 
@@ -147,8 +142,7 @@ epicsExportAddress(dset, devBiS7nodave);
 /*
  * bo record type
  */
-static long initBoRecord (dbCommon *record)
-{
+static long initBoRecord (dbCommon *record) {
     return s7nodaveInitRecord(record, boRecordType);
 }
 
@@ -173,8 +167,7 @@ epicsExportAddress(dset, devBoS7nodave);
 /*
  * longin record type
  */
-static long initLiRecord (dbCommon *record)
-{
+static long initLiRecord (dbCommon *record) {
     return s7nodaveInitRecord(record, longinRecordType);
 }
 
@@ -199,8 +192,7 @@ epicsExportAddress(dset, devLonginS7nodave);
 /*
  * longout record type
  */
-static long initLoRecord (dbCommon *record)
-{
+static long initLoRecord (dbCommon *record) {
     return s7nodaveInitRecord(record, longoutRecordType);
 }
 
@@ -225,8 +217,7 @@ epicsExportAddress(dset, devLongoutS7nodave);
 /*
  * mbbi record type
  */
-static long initMbbiRecord (dbCommon *record)
-{
+static long initMbbiRecord (dbCommon *record) {
     return s7nodaveInitRecord(record, mbbiRecordType);
 }
 
@@ -251,8 +242,7 @@ epicsExportAddress(dset, devMbbiS7nodave);
 /*
  * mbbo record type
  */
-static long initMbboRecord (dbCommon *record)
-{
+static long initMbboRecord (dbCommon *record) {
     return s7nodaveInitRecord(record, mbboRecordType);
 }
 
@@ -277,8 +267,7 @@ epicsExportAddress(dset, devMbboS7nodave);
 /*
  * mbbiDirect record type
  */
-static long initMbbiDirectRecord (dbCommon *record)
-{
+static long initMbbiDirectRecord (dbCommon *record) {
     return s7nodaveInitRecord(record, mbbiDirectRecordType);
 }
 
@@ -303,8 +292,7 @@ epicsExportAddress(dset, devMbbiDirectS7nodave);
 /*
  * mbbo record type
  */
-static long initMbboDirectRecord (dbCommon *record)
-{
+static long initMbboDirectRecord (dbCommon *record) {
     return s7nodaveInitRecord(record, mbboDirectRecordType);
 }
 
@@ -329,8 +317,7 @@ epicsExportAddress(dset, devMbboDirectS7nodave);
 /*
  * stringin record type
  */
-static long initSiRecord (dbCommon *record)
-{
+static long initSiRecord (dbCommon *record) {
     return s7nodaveInitRecord(record, stringinRecordType);
 }
 
@@ -355,8 +342,7 @@ epicsExportAddress(dset, devStringinS7nodave);
 /*
  * stringout record type
  */
-static long initSoRecord (dbCommon *record)
-{
+static long initSoRecord (dbCommon *record) {
     return s7nodaveInitRecord(record, stringoutRecordType);
 }
 
@@ -381,8 +367,7 @@ epicsExportAddress(dset, devStringoutS7nodave);
 /*
  * waveform record type - input
  */
-static long initWaveformInRecord (dbCommon *record)
-{
+static long initWaveformInRecord (dbCommon *record) {
     return s7nodaveInitRecord(record, waveformInRecordType);
 }
 
@@ -407,8 +392,7 @@ epicsExportAddress(dset, devWaveformInS7nodave);
 /*
  * waveform record type - output
  */
-static long initWaveformOutRecord (dbCommon *record)
-{
+static long initWaveformOutRecord (dbCommon *record) {
     return s7nodaveInitRecord(record, waveformOutRecordType);
 }
 
@@ -429,4 +413,3 @@ struct {
 };
 
 epicsExportAddress(dset, devWaveformOutS7nodave);
-

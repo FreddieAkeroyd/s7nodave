@@ -4,10 +4,12 @@
 #include <dbFldTypes.h>
 #include <waveformRecord.h>
 
+#include "ArraySupport.h"
 #include "S7nodaveOutputRecord.h"
 #include "s7nodave.h"
 #include "s7nodaveAsyn.h"
-#include "S7nodaveArraySupport.h"
+
+namespace s7nodave {
 
 /**
  * Device support for waveform record, input direction. The waveform record
@@ -15,39 +17,33 @@
  * The two different device supports are implemented by using a different
  * value in the DTYP field (s7nodaveWfIn and s7nodaveWfOut respectively).
  */
-class S7nodaveWaveformOutRecord : public S7nodaveOutputRecord
-{
+class S7nodaveWaveformOutRecord : public S7nodaveOutputRecord {
 public:
     /**
      * Constructor. The passed record pointer is stored and used by all methods,
      * which need to access record fields.
      */
     S7nodaveWaveformOutRecord(dbCommon *record) :
-        S7nodaveOutputRecord(record, waveformOutRecordType)
-    {
+        S7nodaveOutputRecord(record, waveformOutRecordType) {
     };
 
 protected:
 
-    virtual boost::optional<s7nodavePlcDataType> getPlcDataType(S7nodavePlcAddress plcAddress, boost::optional<s7nodavePlcDataType> suggestion)
-    {
+    virtual Optional<s7nodavePlcDataType> getPlcDataType(PlcAddress plcAddress, Optional<s7nodavePlcDataType> suggestion) override {
         waveformRecord *wfRec = reinterpret_cast<waveformRecord *>(this->record);
-        return S7nodaveArraySupport::getPlcDataTypeOut(plcAddress, suggestion, wfRec->ftvl);
+        return ArraySupport::getPlcDataTypeOut(plcAddress, suggestion, wfRec->ftvl);
    };
 
-    virtual DBLINK getDeviceAddress() const
-    {
+    virtual DBLINK getDeviceAddress() const override {
         waveformRecord *wfRec = reinterpret_cast<waveformRecord *>(this->record);
         return wfRec->inp;
     };
 
-    virtual void readFromRecord(void *buffer, int bufferSize) const
-    {
-        S7nodaveArraySupport::write<waveformRecord>(this->myAsynUser, this->record, buffer, bufferSize, this->recordAddress->getPlcDataType());
+    virtual void readFromRecord(void *buffer, int bufferSize) const override {
+        ArraySupport::write<waveformRecord>(this->myAsynUser, this->record, buffer, bufferSize, this->recordAddress->getPlcDataType());
     };
 
-    virtual unsigned long int getIoBufferSizeInBits() const
-    {
+    virtual unsigned long int getIoBufferSizeInBits() const override {
         waveformRecord *wfRec = reinterpret_cast<waveformRecord *>(this->record);
         if (wfRec->ftvl == DBF_STRING) {
             // String is special because each element takes 40 bytes, while
@@ -59,10 +55,11 @@ protected:
         return wfRec->nelm * S7nodaveOutputRecord::getIoBufferSizeInBits();
     };
 
-    virtual long writeToRecord(void *buffer, int bufferSize)
-    {
-        return S7nodaveArraySupport::read<waveformRecord>(this->myAsynUser, this->record, buffer, bufferSize, this->recordAddress->getPlcDataType());
+    virtual long writeToRecord(void *buffer, int bufferSize) override {
+        return ArraySupport::read<waveformRecord>(this->myAsynUser, this->record, buffer, bufferSize, this->recordAddress->getPlcDataType());
     };
 };
 
-#endif
+} // namespace s7nodave
+
+#endif // S7nodaveWaveformOutRecord_h

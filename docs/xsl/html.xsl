@@ -3,7 +3,7 @@
   xmlns="http://www.w3.org/1999/xhtml" version="1.0">
 
   <xsl:import
-    href="http://docbook.sourceforge.net/release/xsl/current/html/docbook.xsl" />
+    href="http://cdn.docbook.org/release/xsl/current/html/docbook.xsl" />
   <xsl:output method="html" indent="yes" encoding="utf-8"
     doctype-public="-//W3C//DTD HTML 4.01 Transitional//EN"
     doctype-system="http://www.w3.org/TR/html4/loose.dtd" />
