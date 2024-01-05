@@ -1,0 +1,4 @@
+MODULES=asyn
+
+BASE=7.0.8
+ASYN=R4-44-2
