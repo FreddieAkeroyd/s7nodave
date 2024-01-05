@@ -1,6 +1,6 @@
 MODULES="sncseq asyn gtest"
 
-BASE=7.0.8
+BASE=R7.0.8
 ASYN=R4-44-2
 SNCSEQ=R2-2-8
 GTEST=main
