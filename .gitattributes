@@ -1,5 +1,7 @@
 * text=auto
-.c text
-.h text
-.cc text
-.dbd text
+*.c text
+*.h text
+*.cc text
+*.cpp text
+*.dbd text
+*.db text

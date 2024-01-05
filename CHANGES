@@ -1,1 +1,2 @@
 This is a modified s7nodave to work on WIN32
+Also changed to use the EPICS GTEST module to run tests 
