@@ -8,7 +8,7 @@ include $(TOP)/configure/CONFIG
 #==================================================
 # Build the test application
 
-PROD_IOC += runTests
+GTESTPROD_HOST += runTests
 
 USR_INCLUDES += -I$(TOP)/s7nodaveApp/src
 
@@ -19,12 +19,14 @@ runTests_SRCS += S7nodaveRecordAddressTest.cpp
 runTests_SRCS += utilitiesTest.cpp
 
 # Add all the support libraries needed by this executable
+runTests_LIBS += s7nodave asyn snap7 
 runTests_LIBS += $(EPICS_BASE_IOC_LIBS)
-runTests_LIBS += asyn snap7 s7nodave
-runTests_SYS_LIBS += gtest gtest_main
+
+GTESTS += runTests
 
 #===========================
 
 include $(TOP)/configure/RULES
 #----------------------------------------
 #  ADD RULES AFTER THIS LINE
+-include $(GTEST)/cfg/compat.RULES_BUILD

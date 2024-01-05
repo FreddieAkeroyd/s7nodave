@@ -6,7 +6,7 @@ DIRS := $(DIRS) $(filter-out $(DIRS), $(wildcard *db*))
 DIRS := $(DIRS) $(filter-out $(DIRS), $(wildcard *Db*))
 DIRS += snap7
 src_DEPEND_DIRS = snap7
-ifdef BUILD_TESTS
+ifdef GTEST
 DIRS += tests
 tests_DEPEND_DIRS += src
 endif
