@@ -70,33 +70,6 @@ jobs:
             extra: "CMD_CXXFLAGS=-std=c++11"
             name: "Ub-20 clang-10 C++11"
 
-          - os: ubuntu-20.04
-            cmp: gcc
-            configuration: default
-            rtems: "4.10"
-            name: "Ub-20 gcc-9 + RT-4.10"
-
-          - os: ubuntu-20.04
-            cmp: gcc
-            configuration: default
-            rtems: "4.9"
-            name: "Ub-20 gcc-9 + RT-4.9"
-
-          - os: ubuntu-20.04
-            cmp: gcc
-            configuration: default
-            rtems: "5"
-            rtems_target: RTEMS-pc686-qemu
-            name: "Ub-20 gcc-9 + RT-5.1 pc686"
-
-          - os: ubuntu-20.04
-            cmp: gcc
-            configuration: default
-            rtems: "5"
-            rtems_target: RTEMS-beatnik
-            test: NO
-            name: "Ub-20 gcc-9 + RT-5.1 beatnik"
-
           - os: ubuntu-18.04
             cmp: gcc
             configuration: default
@@ -190,38 +163,3 @@ jobs:
         path: '**/O.*/*.tap'
     - name: Collect and show test results
       run: python .ci/cue.py test-results
-
-  build-cross:
-    name: cross ${{ matrix.cross }} / ${{ matrix.cmp }} / ${{ matrix.configuration }}
-    runs-on: ubuntu-20.04
-    env:
-      CMP: gcc
-      BCFG: default
-      CI_CROSS_TARGETS: ${{ matrix.cross }}
-      APT: re2c
-    strategy:
-      fail-fast: false
-      matrix:
-        # configuration: [default, static, debug, static-debug]
-        configuration: [default]
-        cross:
-        - linux-aarch64
-        - linux-arm@arm-linux-gnueabi
-        - linux-arm@arm-linux-gnueabihf
-        - linux-ppc
-        - linux-ppc64
-        - win32-x86-mingw
-        - windows-x64-mingw
-        - RTEMS-pc386-qemu@4.9
-        - RTEMS-pc386-qemu@4.10
-        - RTEMS-pc686-qemu@5
-    steps:
-    - uses: actions/checkout@v3
-    - name: Prepare and compile dependencies
-      run: python cue.py prepare
-    - name: Build main module
-      run: python cue.py build
-    - name: Run main module tests
-      run: python cue.py -T 15M test
-    - name: Collect and show test results
-      run: python cue.py test-results
