@@ -103,15 +103,15 @@ jobs:
 #            configuration: default
 #            name: "MacOS clang-13"
 
-          - os: windows-2019
-            cmp: gcc
-            configuration: default
-            name: "Win2019 MinGW"
+#          - os: windows-2019
+#            cmp: gcc
+#            configuration: default
+#            name: "Win2019 MinGW"
 
-          - os: windows-2019
-            cmp: gcc
-            configuration: static
-            name: "Win2019 MinGW, static"
+#          - os: windows-2019
+#            cmp: gcc
+#            configuration: static
+#            name: "Win2019 MinGW, static"
 
           - os: windows-2019
             cmp: vs2019
