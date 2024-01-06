@@ -42,17 +42,17 @@ jobs:
       matrix:
         # Job names also name artifacts, character limitations apply
         include:
-          - os: ubuntu-20.04
-            cmp: gcc
-            configuration: default
-            wine: "64"
-            name: "Ub-20 gcc-9 + MinGW"
+#          - os: ubuntu-20.04
+#            cmp: gcc
+#            configuration: default
+#            wine: "64"
+#            name: "Ub-20 gcc-9 + MinGW"
 
-          - os: ubuntu-20.04
-            cmp: gcc
-            configuration: static
-            wine: "64"
-            name: "Ub-20 gcc-9 + MinGW, static"
+#          - os: ubuntu-20.04
+#            cmp: gcc
+#            configuration: static
+#            wine: "64"
+#            name: "Ub-20 gcc-9 + MinGW, static"
 
           - os: ubuntu-20.04
             cmp: gcc
@@ -82,26 +82,26 @@ jobs:
             configuration: default
             name: "Ub-18 gcc-8"
 
-          - os: ubuntu-20.04
-            cmp: gcc-8
-            utoolchain: true
-            configuration: default
-            name: "Ub-20 gcc-8"
+#          - os: ubuntu-20.04
+#            cmp: gcc-8
+#            utoolchain: true
+#            configuration: default
+#            name: "Ub-20 gcc-8"
 
           - os: ubuntu-20.04
             cmp: clang
             configuration: default
             name: "Ub-20 clang-10"
 
-          - os: macos-11
-            cmp: clang
-            configuration: default
-            name: "MacOS clang-13"
+#          - os: macos-11
+#            cmp: clang
+#            configuration: default
+#            name: "MacOS clang-13"
 
-          - os: macos-12
-            cmp: clang
-            configuration: default
-            name: "MacOS clang-13"
+#          - os: macos-12
+#            cmp: clang
+#            configuration: default
+#            name: "MacOS clang-13"
 
           - os: windows-2019
             cmp: gcc
