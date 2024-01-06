@@ -60,10 +60,10 @@ jobs:
             extra: "CMD_CXXFLAGS=-std=c++11"
             name: "Ub-20 gcc-9 C++11, static"
 
-          - os: ubuntu-18.04
-            cmp: clang
-            configuration: default
-            name: "Ub-18 clang-9"
+#          - os: ubuntu-18.04
+#            cmp: clang
+#            configuration: default
+#            name: "Ub-18 clang-9"
 
           - os: ubuntu-20.04
             cmp: clang
@@ -71,16 +71,16 @@ jobs:
             extra: "CMD_CXXFLAGS=-std=c++11"
             name: "Ub-20 clang-10 C++11"
 
-          - os: ubuntu-18.04
-            cmp: gcc
-            configuration: default
-            name: "Ub-18 gcc-7"
+#          - os: ubuntu-18.04
+#            cmp: gcc
+#            configuration: default
+#            name: "Ub-18 gcc-7"
 
-          - os: ubuntu-18.04
-            cmp: gcc-8
-            utoolchain: true
-            configuration: default
-            name: "Ub-18 gcc-8"
+#          - os: ubuntu-18.04
+#            cmp: gcc-8
+#            utoolchain: true
+#            configuration: default
+#            name: "Ub-18 gcc-8"
 
 #          - os: ubuntu-20.04
 #            cmp: gcc-8
