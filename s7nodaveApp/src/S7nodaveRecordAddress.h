@@ -15,7 +15,7 @@ namespace s7nodave {
 /**
  * Represents the whole device address given for a record.
  */
-class S7nodaveRecordAddress {
+class S7NODAVE_API S7nodaveRecordAddress {
 public:
     using DeviceParameters = std::map<std::string, Optional<std::string>>;
 

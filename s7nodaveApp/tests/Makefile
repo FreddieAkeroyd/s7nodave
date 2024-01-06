@@ -22,7 +22,14 @@ runTests_SRCS += utilitiesTest.cpp
 runTests_LIBS += s7nodave asyn snap7 
 runTests_LIBS += $(EPICS_BASE_IOC_LIBS)
 
+# do not run on win32 DLL build as path issues, static is OK
+ifeq ($(STATIC_BUILD),YES)
 GTESTS += runTests
+else
+ifndef WIN32
+GTESTS += runTests
+endif
+endif
 
 #===========================
 

@@ -20,6 +20,8 @@ else
 USR_CPPFLAGS += -DSNAP7_EXPORT=
 endif
 
+USR_CPPFLAGS += -DBUILDING_s7nodave_API
+
 # install s7nodave.dbd into <top>/dbd
 DBD += s7nodave.dbd
 

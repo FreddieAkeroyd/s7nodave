@@ -5,19 +5,19 @@
 
 namespace s7nodave {
 
-void toLower(std::string& str) {
+S7NODAVE_API void toLower(std::string& str) {
     for (auto& c : str) {
         c = std::tolower(c, std::locale::classic());
     }
 }
 
-void toUpper(std::string& str) {
+S7NODAVE_API void toUpper(std::string& str) {
     for (auto& c : str) {
         c = std::toupper(c, std::locale::classic());
     }
 }
 
-std::vector<std::string> splitString(const std::string& str, char delimiter) {
+S7NODAVE_API std::vector<std::string> splitString(const std::string& str, char delimiter) {
     std::vector<std::string> tokens;
     std::size_t lastPos = 0;
     for (std::size_t pos = 0; pos < str.size(); ++pos) {
@@ -34,18 +34,18 @@ std::vector<std::string> splitString(const std::string& str, char delimiter) {
     return tokens;
 }
 
-void trim(std::string& str) {
+S7NODAVE_API void trim(std::string& str) {
     trimRight(str);
     trimLeft(str);
 }
 
-void trimLeft(std::string& str) {
+S7NODAVE_API void trimLeft(std::string& str) {
     str.erase(str.begin(), std::find_if_not(str.begin(), str.end(), [](char c) {
         return std::isspace(c, std::locale::classic());
     }));
 }
 
-void trimRight(std::string& str) {
+S7NODAVE_API void trimRight(std::string& str) {
     str.erase(std::find_if_not(str.rbegin(), str.rend(), [](char c) {
         return std::isspace(c, std::locale::classic());
     }).base(), str.end());

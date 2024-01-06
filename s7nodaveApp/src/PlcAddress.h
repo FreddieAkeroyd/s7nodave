@@ -6,12 +6,14 @@
 #include "Optional.h"
 #include "s7nodaveAsyn.h"
 
+#include "s7nodaveAPI.h"
+
 namespace s7nodave {
 
 /**
  * Represents the memory address in a PLC.
  */
-class PlcAddress {
+class S7NODAVE_API PlcAddress {
 public:
     /**
      * Tells whether this address is the same as another address.
