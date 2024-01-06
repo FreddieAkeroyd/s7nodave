@@ -60,6 +60,12 @@ jobs:
             extra: "CMD_CXXFLAGS=-std=c++11"
             name: "Ub-20 gcc-9 C++11, static"
 
+          - os: ubuntu-20.04
+            cmp: gcc
+            configuration: default
+            extra: "CMD_CXXFLAGS=-std=c++11"
+            name: "Ub-20 gcc-9 C++11"
+
 #          - os: ubuntu-18.04
 #            cmp: clang
 #            configuration: default
@@ -92,6 +98,11 @@ jobs:
             cmp: clang
             configuration: default
             name: "Ub-20 clang-10"
+
+          - os: ubuntu-20.04
+            cmp: clang
+            configuration: static
+            name: "Ub-20 clang-10, static"
 
 #          - os: macos-11
 #            cmp: clang
