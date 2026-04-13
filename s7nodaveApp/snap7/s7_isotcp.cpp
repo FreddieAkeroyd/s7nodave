@@ -27,7 +27,8 @@
 //---------------------------------------------------------------------------
 TIsoTcpSocket::TIsoTcpSocket()
 {
-    RecvTimeout = 3000; // Some old equipments are a bit slow to answer....
+    // 3000 as Some old equipments are a bit slow to answer....
+    RecvTimeout = (getenv("S7NODAVE_ISOTCPSOCK_RECV_TIMEOUT") != NULL ? atol(getenv("S7NODAVE_ISOTCPSOCK_RECV_TIMEOUT")) : 3000);
     RemotePort  = isoTcpPort;
     // These fields should be $0000 and in any case RFC says that they are not considered.
     // But some equipment...need a non zero value for the source reference.

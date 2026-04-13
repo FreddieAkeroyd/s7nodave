@@ -88,9 +88,9 @@ TMsgSocket::TMsgSocket()
     strcpy(RemoteAddress,"127.0.0.1");
     RemotePort=0;
     WorkInterval=100;
-    RecvTimeout=500;
+    RecvTimeout=(getenv("S7NODAVE_MSGSOCK_RECV_TIMEOUT") != NULL ? atol(getenv("S7NODAVE_MSGSOCK_RECV_TIMEOUT")) : 500);
     SendTimeout=10;
-    PingTimeout=750;
+    PingTimeout=(getenv("S7NODAVE_MSGSOCK_PING_TIMEOUT") != NULL ? atol(getenv("S7NODAVE_MSGSOCK_PING_TIMEOUT")) : 750);
     Connected=false;
     FSocket=INVALID_SOCKET;
     LastTcpError=0;
