@@ -58,13 +58,13 @@ jobs:
             cmp: gcc
             configuration: static
             extra: "CMD_CXXFLAGS=-std=c++11"
-            name: "Ub-24 gcc-9 C++11, static"
+            name: "Ub-24 gcc C++11, static"
 
           - os: ubuntu-24.04
             cmp: gcc
             configuration: default
             extra: "CMD_CXXFLAGS=-std=c++11"
-            name: "Ub-24 gcc-9 C++11"
+            name: "Ub-24 gcc C++11"
 
 #          - os: ubuntu-24.04
 #            cmp: clang
@@ -75,7 +75,7 @@ jobs:
             cmp: clang
             configuration: default
             extra: "CMD_CXXFLAGS=-std=c++11"
-            name: "Ub-24 clang-10 C++11"
+            name: "Ub-24 clang C++11"
 
 #          - os: ubuntu-24.04
 #            cmp: gcc
@@ -97,12 +97,12 @@ jobs:
           - os: ubuntu-24.04
             cmp: clang
             configuration: default
-            name: "Ub-24 clang-10"
+            name: "Ub-24 clang"
 
           - os: ubuntu-24.04
             cmp: clang
             configuration: static
-            name: "Ub-24 clang-10, static"
+            name: "Ub-24 clang, static"
 
 #          - os: macos-11
 #            cmp: clang
@@ -149,12 +149,12 @@ jobs:
           - os: windows-2025
             cmp: vs2022
             configuration: default
-            name: "Win2022 MSC-22"
+            name: "Win2025 MSC-22"
 
           - os: windows-2025
             cmp: vs2022
             configuration: static
-            name: "Win2022 MSC-22, static"
+            name: "Win2025 MSC-22, static"
 
 
     steps:
