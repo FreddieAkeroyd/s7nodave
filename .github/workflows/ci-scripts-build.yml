@@ -188,3 +188,4 @@ jobs:
         path: '**/O.*/*.tap'
     - name: Collect and show test results
       run: python .ci/cue.py test-results
+
