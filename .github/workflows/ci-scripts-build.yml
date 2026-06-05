@@ -147,14 +147,14 @@ jobs:
             name: "Win2022 MSC-22, x86, static"
 
           - os: windows-2025
-            cmp: vs2022
+            cmp: vs2026
             configuration: default
-            name: "Win2025 MSC-22"
+            name: "Win2025 MSC-26"
 
           - os: windows-2025
-            cmp: vs2022
+            cmp: vs2026
             configuration: static
-            name: "Win2025 MSC-22, static"
+            name: "Win2025 MSC-26, static"
 
 
     steps:
