@@ -40,7 +40,7 @@ TSnap7MicroClient::TSnap7MicroClient()
     DstRef  =0x0000;
     SrcTSap =0x0100;
     DstTSap =0x0000; // It's filled by connection functions
-    ConnectionType = CONNTYPE_PG; // Default connection type
+    ConnectionType = CONNTYPE_OP; // Default connection type
     memset(&Job,0,sizeof(TSnap7Job));
 }
 //---------------------------------------------------------------------------
